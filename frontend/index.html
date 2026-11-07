@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant Money Engine | Executive Financial Cockpit</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="assets/logo.svg" alt="RME Logo" class="logo-icon">
+      <div>
+        <h1 class="brand-title">Restaurant Money Engine</h1>
+        <p class="brand-subtitle">Multi-Restaurant Financial SaaS</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Restaurant Context Switcher -->
+      <select id="restaurant-select" class="restaurant-select" aria-label="Active Restaurant">
+        <option value="rest_demo_777">L'Osteria Downtown (Primary)</option>
+        <option value="rest_demo_888">The Smokehouse BBQ (Branch)</option>
+        <option value="rest_demo_999">Harborview Seafood Lounge</option>
+      </select>
+
+      <!-- Supabase Auth Status Chip -->
+      <div id="auth-status-chip" class="auth-chip auth-demo" title="Click to manage Supabase JWT">
+        Demo Session Active
+      </div>
+      <button class="btn btn-secondary btn-xs" id="btn-open-auth-modal">Auth Settings</button>
+
+      <!-- Backend Live Health Indicator -->
+      <div class="status-badge" title="Flask Backend Health Status">
+        <span class="indicator-dot" id="header-health-dot"></span>
+        <span id="header-health-text">Checking API...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Dashboard Views">
+      <button class="nav-tab-btn active" data-tab="tab-overview">📊 Financial Health</button>
+      <button class="nav-tab-btn" data-tab="tab-matrix">⭐ Menu Matrix (Kasavana-Smith)</button>
+      <button class="nav-tab-btn" data-tab="tab-recipes">🍽️ Recipe & Plate Costing</button>
+      <button class="nav-tab-btn" data-tab="tab-simulation">🔮 Profit Simulation Engine</button>
+    </nav>
+
+    <!-- TAB 1: Financial Health & Prime Cost KPIs -->
+    <section id="tab-overview" class="tab-panel active">
+      
+      <!-- Top Metric Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-sales">
+          <div class="kpi-label">
+            <span>Gross Sales</span>
+            <span>📈</span>
+          </div>
+          <div class="kpi-val" id="kpi-sales">$0.00</div>
+          <div class="kpi-sub">Total revenue recorded</div>
+        </div>
+
+        <div class="kpi-card kpi-cogs">
+          <div class="kpi-label">
+            <span>Food & Bev Cost (COGS)</span>
+            <span>🥩</span>
+          </div>
+          <div class="kpi-val" id="kpi-cogs">$0.00</div>
+          <div class="kpi-sub" id="cogs-pct-sub">0% of gross sales</div>
+        </div>
+
+        <div class="kpi-card kpi-labor">
+          <div class="kpi-label">
+            <span>Labor Cost</span>
+            <span>👨‍🍳</span>
+          </div>
+          <div class="kpi-val" id="kpi-labor">$0.00</div>
+          <div class="kpi-sub" id="labor-pct-sub">0% of gross sales</div>
+        </div>
+
+        <div class="kpi-card kpi-prime">
+          <div class="kpi-label">
+            <span>Total Prime Cost</span>
+            <span>⚡</span>
+          </div>
+          <div class="kpi-val" id="kpi-prime">$0.00</div>
+          <div class="kpi-sub">COGS + Labor Combined</div>
+        </div>
+      </div>
+
+      <!-- Prime Cost Health Gauge Banner -->
+      <div class="prime-gauge-banner">
+        <div class="gauge-header">
+          <div>
+            <h2 class="panel-title">Prime Cost % vs Industry Benchmark</h2>
+            <p class="panel-subtitle">Target Prime Cost &le; 60% of Gross Revenue</p>
+          </div>
+          <div class="gauge-val-display">
+            <span class="gauge-pct-huge" id="kpi-prime-pct">0.0%</span>
+            <span class="status-pill status-healthy" id="prime-status-badge">HEALTHY</span>
+          </div>
+        </div>
+
+        <!-- Gauge Progress Bar -->
+        <div class="gauge-track-wrapper">
+          <div class="gauge-fill gauge-healthy" id="prime-gauge-fill" style="width: 59%;"></div>
+          <div class="gauge-benchmark-marker" title="60% Target Benchmark"></div>
+        </div>
+        <div class="gauge-labels">
+          <span>0%</span>
+          <span>Target Threshold (60.0%)</span>
+          <span>100% Critical Alert</span>
+        </div>
+      </div>
+
+      <!-- Log Daily Financials Entry Form -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Log Daily Financial Reconciliation</h3>
+            <p class="panel-subtitle">Record daily sales, food purchases, and labor to sync with Supabase</p>
+          </div>
+        </div>
+        <form id="daily-financials-form" class="dashboard-grid-2col">
+          <div>
+            <div class="form-group">
+              <label class="form-label" for="entry-date">Date of Service</label>
+              <input type="date" class="form-input" id="entry-date" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="entry-sales">Gross Sales ($)</label>
+              <input type="number" step="0.01" min="1" class="form-input" id="entry-sales" placeholder="e.g. 8450.00" required>
+            </div>
+          </div>
+          <div>
+            <div class="form-group">
+              <label class="form-label" for="entry-cogs">Food & Beverage Cost (COGS) ($)</label>
+              <input type="number" step="0.01" min="0" class="form-input" id="entry-cogs" placeholder="e.g. 2450.00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="entry-labor">Total Labor Cost ($)</label>
+              <input type="number" step="0.01" min="0" class="form-input" id="entry-labor" placeholder="e.g. 2500.00" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+              💾 Save Daily Financials to Supabase
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- TAB 2: Kasavana-Smith 2x2 Menu Engineering Matrix -->
+    <section id="tab-matrix" class="tab-panel">
+      
+      <!-- Benchmark Chips & Filter Bar -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Kasavana-Smith Menu Engineering Matrix</h2>
+            <p class="panel-subtitle">Quadrants categorized by Average Contribution Margin (ACM) and 70% Popularity Threshold</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <select id="matrix-category-filter" class="form-select" style="width: auto;">
+              <option value="ALL">All Categories</option>
+              <option value="Mains">Mains</option>
+              <option value="Appetizers">Appetizers</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Desserts">Desserts</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-matrix">↻ Refresh Matrix</button>
+          </div>
+        </div>
+
+        <div class="matrix-stats-bar">
+          <div class="matrix-benchmark-chip">
+            <div>
+              <div class="benchmark-label">Average Margin (ACM)</div>
+              <div class="benchmark-value" id="matrix-acm-val">$0.00</div>
+            </div>
+          </div>
+          <div class="matrix-benchmark-chip">
+            <div>
+              <div class="benchmark-label">Popularity Hurdle (70%)</div>
+              <div class="benchmark-value" id="matrix-vol-val">0 units</div>
+            </div>
+          </div>
+          <div class="matrix-benchmark-chip">
+            <div>
+              <div class="benchmark-label">Menu Breadth</div>
+              <div class="benchmark-value" id="matrix-total-items">0 Dishes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2x2 Quadrant Grid -->
+        <div class="matrix-grid-2x2">
+          
+          <!-- STARS -->
+          <div class="quadrant-box stars">
+            <div class="quadrant-header-row">
+              <span class="quadrant-title">⭐ Stars</span>
+              <span class="pct-pill pct-low" id="quadrant-stars-count">0 Items</span>
+            </div>
+            <p class="quadrant-subtext"><strong>High Profit, High Popularity:</strong> Protect recipe consistency & maintain eye-level menu placement.</p>
+            <div id="quadrant-stars-list"></div>
+          </div>
+
+          <!-- PLOWHORSES -->
+          <div class="quadrant-box plowhorses">
+            <div class="quadrant-header-row">
+              <span class="quadrant-title">🐎 Plowhorses</span>
+              <span class="pct-pill pct-medium" id="quadrant-plowhorses-count">0 Items</span>
+            </div>
+            <p class="quadrant-subtext"><strong>Low Profit, High Popularity:</strong> High demand favorites with slim margin. Test +3% to +5% price increase or trim portion.</p>
+            <div id="quadrant-plowhorses-list"></div>
+          </div>
+
+          <!-- PUZZLES -->
+          <div class="quadrant-box puzzles">
+            <div class="quadrant-header-row">
+              <span class="quadrant-title">🧩 Puzzles</span>
+              <span class="pct-pill pct-medium" id="quadrant-puzzles-count">0 Items</span>
+            </div>
+            <p class="quadrant-subtext"><strong>High Profit, Low Popularity:</strong> Goldmine dishes under-ordered. Feature in chef specials and train servers to upsell.</p>
+            <div id="quadrant-puzzles-list"></div>
+          </div>
+
+          <!-- DOGS -->
+          <div class="quadrant-box dogs">
+            <div class="quadrant-header-row">
+              <span class="quadrant-title">🐕 Dogs</span>
+              <span class="pct-pill pct-high" id="quadrant-dogs-count">0 Items</span>
+            </div>
+            <p class="quadrant-subtext"><strong>Low Profit, Low Popularity:</strong> Inventory drain. Re-engineer ingredients or consider replacing on next menu cycle.</p>
+            <div id="quadrant-dogs-list"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 3: Recipe & Plate Costing Management -->
+    <section id="tab-recipes" class="tab-panel">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Menu Catalog & Recipe Plate Costing</h2>
+            <p class="panel-subtitle">Maintain Bill of Materials (BOM) per portion and auto-calculate food cost %</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <input type="text" id="menu-search-input" class="form-input" placeholder="🔍 Search menu dishes..." style="width: 240px;">
+            <button class="btn btn-primary btn-sm" id="btn-open-add-menu-modal">+ New Menu Item</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 0.85rem; font-size: 0.825rem; color: var(--text-muted);">
+          Total Active Dishes: <strong id="menu-total-count" class="text-main">0 Items</strong>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Dish Name</th>
+                <th>Category</th>
+                <th>Selling Price</th>
+                <th>Plate Cost</th>
+                <th>Food Cost %</th>
+                <th>Portion Margin</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="menu-table-body">
+              <!-- Dynamically populated by menu.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Profit Simulation Engine -->
+    <section id="tab-simulation" class="tab-panel">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">What-If Restaurant Profit Engine</h2>
+            <p class="panel-subtitle">Simulate real-time bottom-line cash impact of menu price adjustments, ingredient inflation, or wage increases</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-reset-simulation">↺ Reset Sliders</button>
+        </div>
+
+        <div class="sim-sliders-grid">
+          <!-- Sliders Section -->
+          <div>
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Wholesale Ingredient Cost Inflation</span>
+                <span id="val-inflation" class="text-rose font-bold">+0%</span>
+              </div>
+              <input type="range" id="slider-inflation" class="slider-input" min="-10" max="30" step="1" value="0">
+              <small style="color: var(--text-dim);">Anticipate food vendor & distributor price increases</small>
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Menu Selling Price Adjustment</span>
+                <span id="val-price" class="text-emerald font-bold">+0%</span>
+              </div>
+              <input type="range" id="slider-price" class="slider-input" min="-10" max="30" step="1" value="0">
+              <small style="color: var(--text-dim);">Simulate an across-the-board menu price raise or promotion</small>
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Labor Wage & Rate Adjustment</span>
+                <span id="val-labor" class="text-indigo font-bold">+0%</span>
+              </div>
+              <input type="range" id="slider-labor" class="slider-input" min="-10" max="30" step="1" value="0">
+              <small style="color: var(--text-dim);">Factor in minimum wage changes or overtime shifts</small>
+            </div>
+          </div>
+
+          <!-- Forecast Results Card -->
+          <div>
+            <div class="sim-hero-box">
+              <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+                Projected Monthly Prime Margin Delta
+              </span>
+              <div id="sim-hero-delta" class="hero-delta-val text-emerald">+$0.00</div>
+              <span id="sim-hero-sub" style="font-size: 0.85rem; color: var(--text-dim);">
+                Based on current trailing 30-day run rate
+              </span>
+            </div>
+
+            <!-- Comparison Breakdown -->
+            <table class="sim-comparison-table">
+              <thead>
+                <tr>
+                  <th>Financial Metric</th>
+                  <th>Baseline</th>
+                  <th>Projected</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Gross Sales</td>
+                  <td id="sim-base-sales">$0.00</td>
+                  <td id="sim-proj-sales" class="font-bold">$0.00</td>
+                </tr>
+                <tr>
+                  <td>Food & Bev COGS</td>
+                  <td id="sim-base-cogs">$0.00</td>
+                  <td id="sim-proj-cogs" class="font-bold">$0.00</td>
+                </tr>
+                <tr>
+                  <td>Labor Cost</td>
+                  <td id="sim-base-labor">$0.00</td>
+                  <td id="sim-proj-labor" class="font-bold">$0.00</td>
+                </tr>
+                <tr>
+                  <td>Prime Cost %</td>
+                  <td id="sim-base-prime-pct">0.0%</td>
+                  <td id="sim-proj-prime-pct" class="font-bold">0.0%</td>
+                </tr>
+                <tr>
+                  <td>Net Prime Margin</td>
+                  <td id="sim-base-margin">$0.00</td>
+                  <td id="sim-proj-margin" class="font-bold text-emerald">$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Add Menu Item -->
+  <dialog id="add-menu-modal" class="app-modal">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Add New Menu Item</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Create a dish under active restaurant tenant.</p>
+    <form id="add-menu-form">
+      <div class="form-group">
+        <label class="form-label" for="new-item-name">Dish Name</label>
+        <input type="text" class="form-input" id="new-item-name" required placeholder="e.g. Wagyu Truffle Burger">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new-item-category">Category</label>
+        <select class="form-select" id="new-item-category" required>
+          <option value="Mains">Mains</option>
+          <option value="Appetizers">Appetizers</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Desserts">Desserts</option>
+          <option value="Sides">Sides</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new-item-price">Selling Price ($)</label>
+        <input type="number" step="0.25" min="0" class="form-input" id="new-item-price" required placeholder="24.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new-item-cost">Initial Plate Cost ($)</label>
+        <input type="number" step="0.10" min="0" class="form-input" id="new-item-cost" value="0.00">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-add-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Dish</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Recipe Costing & Bill of Materials Drawer -->
+  <dialog id="recipe-modal" class="app-modal recipe-modal">
+    <h3 id="recipe-modal-title" style="font-size: 1.25rem; font-weight: 700;">Recipe Breakdown</h3>
+    <p id="recipe-modal-sub" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Portion ingredients and unit costs</p>
+
+    <div class="recipe-rows-wrapper" id="recipe-ingredients-rows">
+      <!-- Dynamically generated rows -->
+    </div>
+
+    <button type="button" class="btn btn-secondary btn-sm" id="btn-add-ingredient-row">+ Add Ingredient Row</button>
+
+    <div class="recipe-summary-bar">
+      <div>
+        <span style="font-size: 0.775rem; text-transform: uppercase; color: var(--text-muted); display: block;">Total Calculated Plate Cost</span>
+        <strong id="recipe-total-calculated" style="font-size: 1.5rem; color: var(--emerald);">$0.00</strong>
+      </div>
+      <div id="recipe-margin-preview" style="font-size: 0.875rem; color: var(--text-muted);">
+        Portion Margin: +$0.00 (0% food cost)
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btn-close-recipe-modal">Close</button>
+      <button type="button" class="btn btn-primary" id="btn-save-recipe">💾 Save Recipe & Update Plate Cost</button>
+    </div>
+  </dialog>
+
+  <!-- MODAL: Supabase Auth & JWT Settings -->
+  <dialog id="auth-modal" class="app-modal">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Supabase Authentication</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Paste your Supabase JWT Bearer token below to authenticate against live multi-tenant backend endpoints.
+    </p>
+    <form id="auth-form">
+      <div class="form-group">
+        <label class="form-label" for="auth-token-input">Supabase User JWT (Bearer Token)</label>
+        <textarea id="auth-token-input" class="form-input" rows="4" placeholder="eyJhbGciOi..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger btn-sm" id="btn-clear-token">Switch to Demo Mode</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-auth-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Apply Token</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Pure Vanilla ES Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

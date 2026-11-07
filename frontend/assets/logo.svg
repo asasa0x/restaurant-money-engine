@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="moneyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="#0F172A" />
+  <circle cx="24" cy="24" r="18" stroke="url(#moneyGrad)" stroke-width="2.5" stroke-dasharray="3 3" />
+  <!-- Plate & Cloche outline -->
+  <path d="M12 33h24M16 33a8 8 0 0 1 16 0" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" />
+  <!-- Dollar / Engine Cog -->
+  <circle cx="24" cy="18" r="6" fill="url(#moneyGrad)" />
+  <text x="24" y="21.5" font-family="system-ui, sans-serif" font-size="9" font-weight="900" fill="#0F172A" text-anchor="middle">$</text>
+  <!-- Sparkles -->
+  <circle cx="34" cy="13" r="1.5" fill="#38BDF8" />
+  <circle cx="14" cy="15" r="1.2" fill="#FBBF24" />
+</svg>
+
