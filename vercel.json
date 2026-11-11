@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/health", "destination": "/api/index.py" },
