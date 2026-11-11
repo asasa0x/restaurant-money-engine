@@ -6,6 +6,7 @@
   <title>Restaurant Money Engine | Executive Financial Cockpit</title>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/order.css">
 </head>
 <body>
 
@@ -48,6 +49,7 @@
       <button class="nav-tab-btn" data-tab="tab-matrix">⭐ Menu Matrix (Kasavana-Smith)</button>
       <button class="nav-tab-btn" data-tab="tab-recipes">🍽️ Recipe & Plate Costing</button>
       <button class="nav-tab-btn" data-tab="tab-simulation">🔮 Profit Simulation Engine</button>
+      <button class="nav-tab-btn" data-tab="tab-orders">🧾 Orders &amp; QR Menu</button>
     </nav>
 
     <!-- TAB 1: Financial Health & Prime Cost KPIs -->
@@ -381,6 +383,60 @@
             </table>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Customer QR Menu & Live Orders -->
+    <section id="tab-orders" class="tab-panel">
+      <div class="dashboard-grid-2col orders-layout">
+
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Customer QR Menu</h2>
+              <p class="panel-subtitle">Customers scan the QR, browse your live menu, add to cart and place an order</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="qr-table-number">Table Number (optional — leave empty for a general QR)</label>
+            <input type="text" class="form-input" id="qr-table-number" maxlength="30" placeholder="e.g. 5">
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-generate-qr" style="width: 100%;">Generate QR Code</button>
+
+          <div id="qr-result" class="qr-result" hidden>
+            <canvas id="qr-canvas" width="260" height="260"></canvas>
+            <strong id="qr-caption" class="qr-caption"></strong>
+            <input type="text" class="form-input" id="qr-link-input" readonly aria-label="Customer menu link">
+            <div class="qr-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-qr-link">Copy Link</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-download-qr">Download PNG</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-print-qr">Print</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Live Orders <span id="orders-pending-count" class="pct-pill pct-medium">0 pending</span></h2>
+              <p class="panel-subtitle">New orders appear automatically</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <select id="orders-status-filter" class="form-select" style="width: auto;" aria-label="Filter orders">
+                <option value="ALL">All</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="preparing">Preparing</option>
+                <option value="ready">Ready</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-orders">↻ Refresh</button>
+            </div>
+          </div>
+          <div id="orders-list" class="orders-list"></div>
+        </div>
+
       </div>
     </section>
 

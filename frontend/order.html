@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Online | Menu</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/order.css">
+</head>
+<body class="customer-body">
+
+  <header class="co-header">
+    <div class="co-header-main">
+      <h1 id="co-restaurant-name">Loading menu…</h1>
+      <span id="co-table-badge" class="co-table-badge" hidden></span>
+    </div>
+    <input id="co-search" class="form-input co-search" type="search" placeholder="🔍 Search menu…" aria-label="Search menu" hidden>
+    <nav id="co-categories" class="co-categories" aria-label="Menu categories"></nav>
+  </header>
+
+  <main class="co-main">
+    <div id="co-status" class="co-status" role="status">Loading menu…</div>
+    <div id="co-menu"></div>
+  </main>
+
+  <!-- Sticky cart bar -->
+  <button id="co-cart-bar" class="co-cart-bar" type="button" hidden>
+    <span><strong id="co-cart-count">0</strong> items · View Cart</span>
+    <strong id="co-cart-total">0</strong>
+  </button>
+
+  <!-- Cart & checkout -->
+  <dialog id="co-cart-modal" class="app-modal co-modal">
+    <h2 class="co-modal-title">Your Order</h2>
+    <div id="co-cart-lines"></div>
+    <div class="co-cart-total-row"><span>Total</span><strong id="co-cart-modal-total">0</strong></div>
+
+    <form id="co-checkout-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="co-name">Your Name *</label>
+        <input class="form-input" id="co-name" maxlength="100" autocomplete="name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="co-table">Table Number</label>
+        <input class="form-input" id="co-table" maxlength="30" inputmode="numeric" placeholder="e.g. 5">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="co-phone">Phone Number <span id="co-phone-hint">(needed if no table)</span></label>
+        <input class="form-input" id="co-phone" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="03xx-xxxxxxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="co-notes">Special Instructions</label>
+        <textarea class="form-input" id="co-notes" rows="2" maxlength="500" placeholder="e.g. less spicy, no onion"></textarea>
+      </div>
+      <p id="co-form-error" class="co-form-error" role="alert" hidden></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="co-cart-close">Keep Browsing</button>
+        <button type="submit" class="btn btn-primary" id="co-place-order">Place Order</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Order confirmation & live status -->
+  <dialog id="co-success-modal" class="app-modal co-modal">
+    <div class="co-success-icon">✓</div>
+    <h2 class="co-modal-title" id="co-success-title">Order placed!</h2>
+    <p class="co-muted">Order code</p>
+    <p class="co-order-code" id="co-success-code">--------</p>
+    <p class="co-status-line">Status: <strong id="co-success-status" class="co-status-pill">Pending</strong></p>
+    <div id="co-success-lines" class="co-success-lines"></div>
+    <div class="co-cart-total-row"><span>Total</span><strong id="co-success-total">0</strong></div>
+    <p class="co-muted">Keep this page open — the status updates automatically. Pay at the counter / table.</p>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" id="co-new-order">Order More</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/customer-order.js"></script>
+</body>
+</html>

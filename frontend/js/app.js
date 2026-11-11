@@ -6,6 +6,7 @@ import { api, showToast } from "./api.js";
 import { dashboard } from "./dashboard.js";
 import { matrix } from "./matrix.js";
 import { menu } from "./menu.js";
+import { orders } from "./orders.js";
 import { simulation } from "./simulation.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -18,6 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   matrix.bindEvents();
   menu.bindEvents();
   simulation.bindEvents();
+  orders.bindEvents();
 
   // Verify existing session or prompt login
   await initializeSession();
@@ -89,6 +91,7 @@ async function reloadAllModules() {
     dashboard.loadFinancials(),
     matrix.loadMatrix(),
     menu.loadMenu(),
+    orders.loadOrders(),
     simulation.runSimulation()
   ]);
 }
@@ -97,6 +100,7 @@ function resetAllViews() {
   dashboard.reset();
   matrix.reset();
   menu.reset();
+  orders.reset();
   simulation.reset();
 }
 
