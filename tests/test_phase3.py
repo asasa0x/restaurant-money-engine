@@ -84,6 +84,8 @@ class TestPhase3Integration(unittest.TestCase):
         mock_query.select.return_value = mock_query
         mock_query.eq.return_value = mock_query
         mock_query.single.return_value = mock_query
+        mock_query.limit.return_value = mock_query
+        mock_query.in_.return_value = mock_query
         mock_query.order.return_value = mock_query
         mock_query.insert.return_value = mock_query
         mock_query.update.return_value = mock_query
@@ -161,6 +163,8 @@ class TestPhase3Integration(unittest.TestCase):
         mock_query.select.return_value = mock_query
         mock_query.eq.return_value = mock_query
         mock_query.single.return_value = mock_query
+        mock_query.limit.return_value = mock_query
+        mock_query.in_.return_value = mock_query
         mock_query.insert.return_value = mock_query
         mock_query.update.return_value = mock_query
         mock_query.delete.return_value = mock_query
@@ -217,6 +221,8 @@ class TestPhase3Integration(unittest.TestCase):
         mock_query.select.return_value = mock_query
         mock_query.eq.return_value = mock_query
         mock_query.single.return_value = mock_query
+        mock_query.limit.return_value = mock_query
+        mock_query.in_.return_value = mock_query
         mock_query.order.return_value = mock_query
         mock_query.limit.return_value = mock_query
 

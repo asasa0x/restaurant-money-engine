@@ -2,16 +2,21 @@
  * Restaurant Money Engine - Dashboard & Prime Cost Health
  */
 
-import { api, DEMO_STORE, showToast, formatCurrency } from "./api.js";
+import { api, EMPTY_STATE, showToast, formatCurrency } from "./api.js";
 
 export const dashboard = {
   state: {
-    financials: { ...DEMO_STORE.financials }
+    financials: { ...EMPTY_STATE.financials }
   },
 
   async init() {
     this.bindEvents();
     await this.loadFinancials();
+  },
+
+  reset() {
+    this.state.financials = { ...EMPTY_STATE.financials };
+    this.render();
   },
 
   bindEvents() {
@@ -22,12 +27,23 @@ export const dashboard = {
   },
 
   async loadFinancials() {
-    // If user has a token, we query the latest financial stats or compute from daily entries
-    const res = await api.get("/api/v1/daily-financials");
-    if (res && !res.__isFallback && res.data) {
-      this.state.financials = res.data;
-    } else {
-      this.state.financials = { ...DEMO_STORE.financials };
+    if (!api.isAuthenticated()) {
+      this.reset();
+      return;
+    }
+
+    try {
+      const res = await api.get("/api/v1/daily-financials");
+      if (res && res.data) {
+        this.state.financials = res.data;
+      } else {
+        this.state.financials = { ...EMPTY_STATE.financials };
+      }
+    } catch (err) {
+      this.state.financials = { ...EMPTY_STATE.financials };
+      if (err.status !== 401) {
+        showToast(`Failed to load daily financials: ${err.message}`, "error");
+      }
     }
     this.render();
   },
@@ -54,21 +70,23 @@ export const dashboard = {
 
     const primePct = parseFloat(f.prime_cost_pct || 0);
     const targetPct = parseFloat(f.target_prime_cost_pct || 60.0);
-    const isHealthy = primePct <= targetPct;
+    // Honor the server-computed status (zero-sales days must never display as HEALTHY)
+    const status = f.status || (f.gross_sales > 0 && primePct <= targetPct ? "HEALTHY" : "ALERT");
+    const isHealthy = status === "HEALTHY";
 
     if (pctEl) {
       pctEl.textContent = `${primePct.toFixed(1)}%`;
     }
 
     if (statusBadge) {
-      statusBadge.textContent = isHealthy ? "HEALTHY" : "ALERT";
-      statusBadge.className = `status-pill ${isHealthy ? 'status-healthy' : 'status-alert'}`;
+      statusBadge.textContent = status.replace("_", " ");
+      statusBadge.className = `status-pill ${isHealthy ? "status-healthy" : "status-alert"}`;
     }
 
     // 3. Visual Gauge Bar (0% to 100%, with benchmark pin at 60%)
     if (gaugeFill) {
       gaugeFill.style.width = `${Math.min(100, Math.max(0, primePct))}%`;
-      gaugeFill.className = `gauge-fill ${isHealthy ? 'gauge-healthy' : 'gauge-alert'}`;
+      gaugeFill.className = `gauge-fill ${isHealthy ? "gauge-healthy" : "gauge-alert"}`;
     }
 
     if (gaugePointer) {
@@ -78,16 +96,25 @@ export const dashboard = {
     // Subtext summaries
     const cogsPctEl = document.getElementById("cogs-pct-sub");
     const laborPctEl = document.getElementById("labor-pct-sub");
-    if (cogsPctEl && f.gross_sales > 0) {
-      cogsPctEl.textContent = `${((f.cogs / f.gross_sales) * 100).toFixed(1)}% of sales`;
+    if (cogsPctEl) {
+      cogsPctEl.textContent = f.gross_sales > 0
+        ? `${((f.cogs / f.gross_sales) * 100).toFixed(1)}% of sales`
+        : "0% of gross sales";
     }
-    if (laborPctEl && f.gross_sales > 0) {
-      laborPctEl.textContent = `${((f.labor_cost / f.gross_sales) * 100).toFixed(1)}% of sales`;
+    if (laborPctEl) {
+      laborPctEl.textContent = f.gross_sales > 0
+        ? `${((f.labor_cost / f.gross_sales) * 100).toFixed(1)}% of sales`
+        : "0% of gross sales";
     }
   },
 
   async handleLogFinancials(e) {
     e.preventDefault();
+    if (!api.isAuthenticated()) {
+      showToast("Please sign in to record daily financials.", "error");
+      return;
+    }
+
     const form = e.target;
     const btn = form.querySelector('button[type="submit"]');
 
@@ -113,8 +140,7 @@ export const dashboard = {
       };
 
       const res = await api.post("/api/v1/daily-financials", payload);
-
-      if (res && !res.__isFallback && res.metrics) {
+      if (res && res.metrics) {
         this.state.financials = {
           ...res.metrics,
           gross_sales: sales,
@@ -122,28 +148,12 @@ export const dashboard = {
           labor_cost: labor
         };
         showToast("Daily financials recorded in Supabase database!", "success");
-      } else {
-        // Fallback local calculation
-        const prime = cogs + labor;
-        const pct = (prime / sales) * 100;
-        this.state.financials = {
-          gross_sales: sales,
-          cogs: cogs,
-          labor_cost: labor,
-          prime_cost: prime,
-          prime_cost_pct: Math.round(pct * 10) / 10,
-          target_prime_cost_pct: 60.0,
-          status: pct <= 60.0 ? "HEALTHY" : "ALERT"
-        };
-        showToast("Daily financials calculated (Local Session)!", "info");
       }
 
       this.render();
       form.reset();
-      // Reset default date to today
       const dateEl = document.getElementById("entry-date");
       if (dateEl) dateEl.value = new Date().toISOString().split("T")[0];
-
     } catch (err) {
       showToast(`Error saving financials: ${err.message}`, "error");
     } finally {
@@ -151,4 +161,3 @@ export const dashboard = {
     }
   }
 };
-

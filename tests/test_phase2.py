@@ -46,7 +46,9 @@ class TestPhase2Integration(unittest.TestCase):
         self.assertEqual(res2.status_code, 401)
         self.assertEqual(res2.get_json()["code"], "UNAUTHORIZED")
 
-    def test_endpoints_unauthorized_with_invalid_token(self):
+    @patch("backend.services.supabase_client.supabase.auth.get_user", side_effect=Exception("invalid JWT"))
+    def test_endpoints_unauthorized_with_invalid_token(self, _mock_get_user):
+        # Mocked so the test is deterministic and makes no real network call to Supabase
         res = self.client.get("/api/v1/menu-matrix", headers={"Authorization": "Bearer malformed.invalid.token"})
         self.assertEqual(res.status_code, 401)
         self.assertEqual(res.get_json()["code"], "UNAUTHORIZED")
@@ -67,6 +69,8 @@ class TestPhase2Integration(unittest.TestCase):
         mock_query.select.return_value = mock_query
         mock_query.eq.return_value = mock_query
         mock_query.single.return_value = mock_query
+        mock_query.limit.return_value = mock_query
+        mock_query.in_.return_value = mock_query
         mock_query.insert.return_value = mock_query
 
         # Mock table dispatch
@@ -120,6 +124,18 @@ class TestPhase2Integration(unittest.TestCase):
         self.assertTrue(get_data["success"])
         self.assertEqual(get_data["restaurant_id"], "rest_uuid_777")
         self.assertIn("quadrants", get_data["data"])
+
+    @patch("backend.services.supabase_client.Config.SUPABASE_URL", "https://example.supabase.co")
+    @patch("backend.services.supabase_client.Config.SUPABASE_SERVICE_ROLE_KEY", "sb_secret_test_opaque_key_value")
+    def test_opaque_supabase_api_key_support(self):
+        from backend.services.supabase_client import init_supabase_client
+        client = init_supabase_client()
+        self.assertEqual(client.supabase_key, "sb_secret_test_opaque_key_value")
+        self.assertEqual(client.options.headers.get("apiKey"), "sb_secret_test_opaque_key_value")
+        self.assertEqual(
+            client.options.headers.get("Authorization"),
+            "Bearer sb_secret_test_opaque_key_value"
+        )
 
 if __name__ == "__main__":
     unittest.main()

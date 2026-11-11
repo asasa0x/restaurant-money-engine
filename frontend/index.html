@@ -20,18 +20,16 @@
     </div>
 
     <div class="header-controls">
-      <!-- Restaurant Context Switcher -->
-      <select id="restaurant-select" class="restaurant-select" aria-label="Active Restaurant">
-        <option value="rest_demo_777">L'Osteria Downtown (Primary)</option>
-        <option value="rest_demo_888">The Smokehouse BBQ (Branch)</option>
-        <option value="rest_demo_999">Harborview Seafood Lounge</option>
+      <!-- Active Tenant Restaurant Selector -->
+      <select id="restaurant-select" class="restaurant-select" aria-label="Active Restaurant" disabled>
+        <option value="">Sign in to load restaurant</option>
       </select>
 
       <!-- Supabase Auth Status Chip -->
-      <div id="auth-status-chip" class="auth-chip auth-demo" title="Click to manage Supabase JWT">
-        Demo Session Active
+      <div id="auth-status-chip" class="auth-chip auth-demo" title="Current authentication status">
+        Not Signed In
       </div>
-      <button class="btn btn-secondary btn-xs" id="btn-open-auth-modal">Auth Settings</button>
+      <button class="btn btn-primary btn-xs" id="btn-open-auth-modal">Sign In / Account</button>
 
       <!-- Backend Live Health Indicator -->
       <div class="status-badge" title="Flask Backend Health Status">
@@ -253,10 +251,14 @@
         <div class="panel-header">
           <div>
             <h2 class="panel-title">Menu Catalog & Recipe Plate Costing</h2>
-            <p class="panel-subtitle">Maintain Bill of Materials (BOM) per portion and auto-calculate food cost %</p>
+            <p class="panel-subtitle">Maintain Bill of Materials (BOM) per portion, scan menu screenshots, and auto-calculate food cost %</p>
           </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <input type="text" id="menu-search-input" class="form-input" placeholder="🔍 Search menu dishes..." style="width: 240px;">
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <select id="menu-category-filter" class="form-select" style="width: auto;">
+              <option value="ALL">All Categories</option>
+            </select>
+            <input type="text" id="menu-search-input" class="form-input" placeholder="🔍 Search menu dishes..." style="width: 220px;">
+            <button class="btn btn-secondary btn-sm" id="btn-open-scan-menu-modal">📷 Scan Menu Screenshot</button>
             <button class="btn btn-primary btn-sm" id="btn-open-add-menu-modal">+ New Menu Item</button>
           </div>
         </div>
@@ -395,27 +397,133 @@
       </div>
       <div class="form-group">
         <label class="form-label" for="new-item-category">Category</label>
-        <select class="form-select" id="new-item-category" required>
-          <option value="Mains">Mains</option>
-          <option value="Appetizers">Appetizers</option>
-          <option value="Beverages">Beverages</option>
-          <option value="Desserts">Desserts</option>
-          <option value="Sides">Sides</option>
-        </select>
+        <input type="text" class="form-input" id="new-item-category" list="menu-category-datalist" required value="Mains" placeholder="e.g. Pizza, Deals, Burger, Mains">
+        <datalist id="menu-category-datalist">
+          <option value="Deals"></option>
+          <option value="Pizza"></option>
+          <option value="Pizza (New Taste)"></option>
+          <option value="Burger"></option>
+          <option value="Shawarma"></option>
+          <option value="Paratha Roll"></option>
+          <option value="Hot Wings"></option>
+          <option value="Fries"></option>
+          <option value="Salad"></option>
+          <option value="Mains"></option>
+          <option value="Appetizers"></option>
+          <option value="Beverages"></option>
+          <option value="Desserts"></option>
+          <option value="Sides"></option>
+        </datalist>
       </div>
       <div class="form-group">
-        <label class="form-label" for="new-item-price">Selling Price ($)</label>
-        <input type="number" step="0.25" min="0" class="form-input" id="new-item-price" required placeholder="24.00">
+        <label class="form-label" for="new-item-price">Selling Price</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="new-item-price" required placeholder="24.00">
       </div>
       <div class="form-group">
-        <label class="form-label" for="new-item-cost">Initial Plate Cost ($)</label>
-        <input type="number" step="0.10" min="0" class="form-input" id="new-item-cost" value="0.00">
+        <label class="form-label" for="new-item-cost">Initial Plate Cost</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="new-item-cost" value="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new-item-description">Description / Ingredients (Optional)</label>
+        <input type="text" class="form-input" id="new-item-description" placeholder="e.g. Chicken, Bell Pepper, Olives, Cheese">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="btn-close-add-modal">Cancel</button>
         <button type="submit" class="btn btn-primary">Create Dish</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- MODAL: Edit Menu Item -->
+  <dialog id="edit-menu-modal" class="app-modal">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Edit Menu Item</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Update dish details, category, pricing, or description.</p>
+    <form id="edit-menu-form">
+      <input type="hidden" id="edit-item-id">
+      <div class="form-group">
+        <label class="form-label" for="edit-item-name">Dish Name</label>
+        <input type="text" class="form-input" id="edit-item-name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-item-category">Category</label>
+        <input type="text" class="form-input" id="edit-item-category" list="menu-category-datalist" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-item-price">Selling Price</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="edit-item-price" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-item-cost">Plate Cost</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="edit-item-cost" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-item-description">Description / Ingredients</label>
+        <input type="text" class="form-input" id="edit-item-description" placeholder="Ingredients, combo items, or size details">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-edit-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Scan Menu Screenshot & Editable Review -->
+  <dialog id="scan-menu-modal" class="app-modal recipe-modal" style="max-width: 960px; width: 95%;">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem;">📷 Scan Menu Screenshot & Review</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Upload a menu image or paste OCR menu text to extract dishes, review & edit items, and save the complete menu to Supabase.
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="scan-menu-file">1. Upload Menu Screenshot (JPG / PNG / WebP)</label>
+        <input type="file" id="scan-menu-file" class="form-input" accept="image/*">
+        <div id="scan-image-preview-wrap" style="display: none; margin-top: 0.5rem;">
+          <img id="scan-image-preview" alt="Menu Preview" style="max-height: 140px; border-radius: 6px; border: 1px solid var(--border);">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="scan-ocr-text">Menu Text / OCR Input (Optional or Auto-Extracted)</label>
+        <textarea id="scan-ocr-text" class="form-input" rows="4" placeholder="Upload a screenshot above or paste menu text here (e.g. Deal-1 2550RS, Zinger Burger Crispy 320)..."></textarea>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.75rem; flex-wrap: wrap;">
+      <button type="button" class="btn btn-primary btn-sm" id="btn-run-menu-scan">🔍 Extract Menu Items</button>
+      <span id="scan-status-text" style="font-size: 0.825rem; color: var(--text-muted);">Ready to scan menu screenshot.</span>
+    </div>
+
+    <!-- Editable Review Table -->
+    <div id="scan-review-section" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <strong style="font-size: 0.9rem;">2. Editable Review Screen (<span id="scan-review-count">0</span> items extracted)</strong>
+        <button type="button" class="btn btn-secondary btn-xs" id="btn-add-scan-row">+ Add Dish Row</button>
+      </div>
+
+      <div class="table-wrapper" style="max-height: 340px; overflow-y: auto; margin-bottom: 1rem;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 36px;">✓</th>
+              <th>Dish Name</th>
+              <th style="width: 150px;">Category</th>
+              <th style="width: 110px;">Price</th>
+              <th style="width: 110px;">Est. Cost</th>
+              <th>Description / Details</th>
+              <th style="width: 44px;"></th>
+            </tr>
+          </thead>
+          <tbody id="scan-review-rows">
+            <!-- Dynamically populated editable rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="btn-close-scan-modal">Close</button>
+      <button type="button" class="btn btn-primary" id="btn-save-scanned-menu" disabled>💾 Save Verified Menu to Database</button>
+    </div>
   </dialog>
 
   <!-- MODAL: Recipe Costing & Bill of Materials Drawer -->
@@ -445,21 +553,35 @@
     </div>
   </dialog>
 
-  <!-- MODAL: Supabase Auth & JWT Settings -->
+  <!-- MODAL: Supabase Auth (Login / Signup / Session Management) -->
   <dialog id="auth-modal" class="app-modal">
-    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Supabase Authentication</h3>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-      Paste your Supabase JWT Bearer token below to authenticate against live multi-tenant backend endpoints.
+    <h3 id="auth-modal-heading" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem;">Restaurant Account Sign In</h3>
+    <p id="auth-modal-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Sign in with your Supabase account or create a new restaurant workspace.
     </p>
+
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+      <button type="button" class="btn btn-primary btn-xs" id="btn-mode-login" style="flex: 1;">Sign In</button>
+      <button type="button" class="btn btn-secondary btn-xs" id="btn-mode-signup" style="flex: 1;">Create Restaurant Account</button>
+    </div>
+
     <form id="auth-form">
+      <div class="form-group" id="auth-restaurant-group" style="display: none;">
+        <label class="form-label" for="auth-restaurant-name">Restaurant Name</label>
+        <input type="text" id="auth-restaurant-name" class="form-input" placeholder="e.g., L'Osteria Downtown">
+      </div>
       <div class="form-group">
-        <label class="form-label" for="auth-token-input">Supabase User JWT (Bearer Token)</label>
-        <textarea id="auth-token-input" class="form-input" rows="4" placeholder="eyJhbGciOi..."></textarea>
+        <label class="form-label" for="auth-email-input">Email Address</label>
+        <input type="email" id="auth-email-input" class="form-input" required placeholder="owner@restaurant.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="auth-password-input">Password</label>
+        <input type="password" id="auth-password-input" class="form-input" required minlength="6" placeholder="••••••••" autocomplete="current-password">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger btn-sm" id="btn-clear-token">Switch to Demo Mode</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-clear-token" style="display: none;">Sign Out</button>
         <button type="button" class="btn btn-secondary btn-sm" id="btn-close-auth-modal">Cancel</button>
-        <button type="submit" class="btn btn-primary btn-sm">Apply Token</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-auth">Sign In</button>
       </div>
     </form>
   </dialog>

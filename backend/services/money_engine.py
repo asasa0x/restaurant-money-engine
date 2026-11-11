@@ -1,3 +1,4 @@
+import math
 from typing import List, Dict, Any
 
 def calculate_prime_cost(
@@ -11,19 +12,22 @@ def calculate_prime_cost(
     - prime_cost = cogs + labor_cost
     - prime_cost_pct = (prime_cost / gross_sales) * 100
     - status = HEALTHY if prime_cost_pct <= target_prime_cost_pct else ALERT
+    - gross_sales <= 0: prime_cost_pct is None; status is ALERT if any cost exists, else NO_DATA
     """
     cogs_val = float(cogs or 0.0)
     labor_val = float(labor_cost or 0.0)
     sales_val = float(gross_sales or 0.0)
 
     prime_cost = round(cogs_val + labor_val, 2)
-    
-    if sales_val > 0:
-        prime_cost_pct = round((prime_cost / sales_val) * 100, 2)
-    else:
-        prime_cost_pct = 0.0
 
-    status = "HEALTHY" if prime_cost_pct <= target_prime_cost_pct else "ALERT"
+    if math.isfinite(sales_val) and sales_val > 0:
+        prime_cost_pct = round((prime_cost / sales_val) * 100, 2)
+        status = "HEALTHY" if prime_cost_pct <= target_prime_cost_pct else "ALERT"
+    else:
+        # Without sales the percentage is undefined: never report HEALTHY.
+        # Costs with no sales is a loss -> ALERT; nothing recorded at all -> NO_DATA.
+        prime_cost_pct = None
+        status = "ALERT" if prime_cost > 0 else "NO_DATA"
 
     return {
         "gross_sales": sales_val,

@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
-from backend.config import Config
+from backend.config import Config, validate_production_config
+from backend.middleware.tenant import TenantContextError
 from backend.routes import register_routes
 
 def create_app(config_class=Config):
     """Application factory for Restaurant Money Engine backend (Production & Gunicorn ready)."""
+    # Refuse to start in production with a missing/insecure SECRET_KEY
+    validate_production_config(config_class)
+
     frontend_dir = Config.ROOT_DIR / "frontend"
 
     app = Flask(
@@ -13,6 +17,15 @@ def create_app(config_class=Config):
         static_url_path=""
     )
     app.config.from_object(config_class)
+
+    # Fail closed if any route ever runs without a restaurant context
+    @app.errorhandler(TenantContextError)
+    def handle_tenant_context_error(_exc):
+        return jsonify({
+            "success": False,
+            "error": "No restaurant context for this request.",
+            "code": "FORBIDDEN_NO_RESTAURANT"
+        }), 403
 
     # Configure CORS for frontend-backend communication (e.g. Vercel <-> Render)
     CORS(app, resources={r"/*": {"origins": Config.CORS_ORIGINS}})

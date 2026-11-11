@@ -20,38 +20,49 @@ sys.path.insert(0, str(BASE_DIR))
 
 from backend.services.supabase_client import supabase
 
-DEMO_RESTAURANT_ID = "rest_demo_777"
+DEMO_RESTAURANT_ID = "00000000-0000-0000-0000-000000000001"
 DEMO_RESTAURANT_NAME = "L'Osteria Downtown (Primary)"
 
 DEMO_MENU_ITEMS = [
     # ⭐ Stars: High Margin, High Popularity
-    {"id": "item_demo_01", "name": "Truffle Tagliatelle", "category": "Mains", "selling_price": 28.00, "cost_price": 6.20, "is_active": True},
-    {"id": "item_demo_02", "name": "Old Fashioned Cocktail", "category": "Beverages", "selling_price": 16.00, "cost_price": 2.80, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000001", "name": "Truffle Tagliatelle", "category": "Mains", "selling_price": 28.00, "cost_price": 6.20, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000002", "name": "Old Fashioned Cocktail", "category": "Beverages", "selling_price": 16.00, "cost_price": 2.80, "is_active": True},
 
     # 🐎 Plowhorses: Low Margin, High Popularity
-    {"id": "item_demo_03", "name": "Prime Ribeye Steak 12oz", "category": "Mains", "selling_price": 38.00, "cost_price": 17.50, "is_active": True},
-    {"id": "item_demo_04", "name": "Crispy Calamari", "category": "Appetizers", "selling_price": 15.00, "cost_price": 7.20, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000003", "name": "Prime Ribeye Steak 12oz", "category": "Mains", "selling_price": 38.00, "cost_price": 17.50, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000004", "name": "Crispy Calamari", "category": "Appetizers", "selling_price": 15.00, "cost_price": 7.20, "is_active": True},
 
     # 🧩 Puzzles: High Margin, Low Popularity
-    {"id": "item_demo_05", "name": "Pan-Seared Chilean Sea Bass", "category": "Mains", "selling_price": 42.00, "cost_price": 11.00, "is_active": True},
-    {"id": "item_demo_06", "name": "Burrata Caprese", "category": "Appetizers", "selling_price": 18.00, "cost_price": 3.90, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000005", "name": "Pan-Seared Chilean Sea Bass", "category": "Mains", "selling_price": 42.00, "cost_price": 11.00, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000006", "name": "Burrata Caprese", "category": "Appetizers", "selling_price": 18.00, "cost_price": 3.90, "is_active": True},
 
     # 🐕 Dogs: Low Margin, Low Popularity
-    {"id": "item_demo_07", "name": "House Caesar Salad", "category": "Appetizers", "selling_price": 13.00, "cost_price": 6.50, "is_active": True},
-    {"id": "item_demo_08", "name": "Vegetarian Grain Bowl", "category": "Mains", "selling_price": 19.00, "cost_price": 8.20, "is_active": True}
+    {"id": "10000000-0000-0000-0000-000000000007", "name": "House Caesar Salad", "category": "Appetizers", "selling_price": 13.00, "cost_price": 6.50, "is_active": True},
+    {"id": "10000000-0000-0000-0000-000000000008", "name": "Vegetarian Grain Bowl", "category": "Mains", "selling_price": 19.00, "cost_price": 8.20, "is_active": True}
 ]
 
 DEMO_RECIPES = [
     # Truffle Tagliatelle ingredients
-    {"menu_item_id": "item_demo_01", "ingredient_name": "Fresh Egg Tagliatelle", "quantity": 0.180, "unit": "kg", "unit_cost": 6.00},
-    {"menu_item_id": "item_demo_01", "ingredient_name": "Black Truffle Butter", "quantity": 0.030, "unit": "kg", "unit_cost": 45.00},
-    {"menu_item_id": "item_demo_01", "ingredient_name": "Parmigiano-Reggiano", "quantity": 0.040, "unit": "kg", "unit_cost": 22.00},
-    {"menu_item_id": "item_demo_01", "ingredient_name": "Heavy Cream", "quantity": 0.060, "unit": "l", "unit_cost": 5.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000001", "ingredient_name": "Fresh Egg Tagliatelle", "quantity": 0.180, "unit": "kg", "unit_cost": 6.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000001", "ingredient_name": "Black Truffle Butter", "quantity": 0.030, "unit": "kg", "unit_cost": 45.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000001", "ingredient_name": "Parmigiano-Reggiano", "quantity": 0.040, "unit": "kg", "unit_cost": 22.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000001", "ingredient_name": "Heavy Cream", "quantity": 0.060, "unit": "l", "unit_cost": 5.00},
 
     # Prime Ribeye ingredients
-    {"menu_item_id": "item_demo_03", "ingredient_name": "USDA Prime Ribeye", "quantity": 0.350, "unit": "kg", "unit_cost": 42.00},
-    {"menu_item_id": "item_demo_03", "ingredient_name": "Herb Compound Butter", "quantity": 0.030, "unit": "kg", "unit_cost": 18.00},
-    {"menu_item_id": "item_demo_03", "ingredient_name": "Thyme & Garlic Garnish", "quantity": 1.000, "unit": "portion", "unit_cost": 0.50}
+    {"menu_item_id": "10000000-0000-0000-0000-000000000003", "ingredient_name": "USDA Prime Ribeye", "quantity": 0.350, "unit": "kg", "unit_cost": 42.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000003", "ingredient_name": "Herb Compound Butter", "quantity": 0.030, "unit": "kg", "unit_cost": 18.00},
+    {"menu_item_id": "10000000-0000-0000-0000-000000000003", "ingredient_name": "Thyme & Garlic Garnish", "quantity": 1.000, "unit": "portion", "unit_cost": 0.50}
+]
+
+DEMO_SALES_LOGS = [
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000001", "quantity": 340}, # Star
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000002", "quantity": 380}, # Star
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000003", "quantity": 290}, # Plowhorse
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000004", "quantity": 310}, # Plowhorse
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000005", "quantity": 75},  # Puzzle
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000006", "quantity": 85},  # Puzzle
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000007", "quantity": 60},  # Dog
+    {"restaurant_id": DEMO_RESTAURANT_ID, "item_id": "10000000-0000-0000-0000-000000000008", "quantity": 40},  # Dog
 ]
 
 def generate_financials():
@@ -91,6 +102,8 @@ def clean_demo_data():
         # Delete recipes
         for item in DEMO_MENU_ITEMS:
             supabase.table("recipes").delete().eq("menu_item_id", item["id"]).execute()
+        # Delete item sales logs
+        supabase.table("item_sales_logs").delete().eq("restaurant_id", DEMO_RESTAURANT_ID).execute()
         # Delete menu items
         supabase.table("menu_items").delete().eq("restaurant_id", DEMO_RESTAURANT_ID).execute()
         # Delete financials
@@ -150,6 +163,13 @@ def seed_demo_data():
         print(f"  ✓ {len(financials)} Daily financial records seeded.")
     except Exception as e:
         print(f"  - Daily financials table notice: {e}")
+
+    # 5. Seed Item Sales Logs (for Kasavana-Smith Matrix calculation)
+    try:
+        supabase.table("item_sales_logs").upsert(DEMO_SALES_LOGS).execute()
+        print(f"  ✓ {len(DEMO_SALES_LOGS)} Item sales log records seeded.")
+    except Exception as e:
+        print(f"  - Item sales logs table notice: {e}")
 
     print("🎉 Demo seeding process complete!")
 

@@ -2,7 +2,8 @@
  * Restaurant Money Engine - What-If Profit Simulation Engine
  */
 
-import { api, DEMO_STORE, formatCurrency } from "./api.js";
+import { api, EMPTY_STATE, showToast, formatCurrency } from "./api.js";
+import { dashboard } from "./dashboard.js";
 
 export const simulation = {
   state: {
@@ -15,7 +16,12 @@ export const simulation = {
 
   init() {
     this.bindEvents();
-    this.runSimulation(); // Initial baseline run
+    this.runSimulation();
+  },
+
+  reset() {
+    this.state.currentResult = null;
+    this.computeLocalPreview(EMPTY_STATE.financials);
   },
 
   bindEvents() {
@@ -34,13 +40,13 @@ export const simulation = {
           const val = parseFloat(e.target.value || 0);
           this.state[prop] = val;
           if (label) {
-            label.textContent = `${val >= 0 ? '+' : ''}${val}%`;
+            label.textContent = `${val >= 0 ? "+" : ""}${val}%`;
           }
 
-          // Instant local visual feedback
+          // Instant visual preview from active restaurant's baseline
           this.computeLocalPreview();
 
-          // Debounced API call
+          // Debounced backend API call
           clearTimeout(this.state.debounceTimer);
           this.state.debounceTimer = setTimeout(() => {
             this.runSimulation();
@@ -75,12 +81,13 @@ export const simulation = {
     this.runSimulation();
   },
 
-  computeLocalPreview() {
-    const base = DEMO_STORE.financials;
-    const baseSales = base.gross_sales;
-    const baseCogs = base.cogs;
-    const baseLabor = base.labor_cost;
+  computeLocalPreview(explicitBaseline = null) {
+    const base = explicitBaseline || dashboard.state.financials || EMPTY_STATE.financials;
+    const baseSales = parseFloat(base.gross_sales || 0);
+    const baseCogs = parseFloat(base.cogs || 0);
+    const baseLabor = parseFloat(base.labor_cost || 0);
     const basePrime = baseCogs + baseLabor;
+    const basePrimePct = baseSales > 0 ? (basePrime / baseSales) * 100 : 0;
     const baseMargin = baseSales - basePrime;
 
     const pMult = 1.0 + (this.state.pricePct / 100.0);
@@ -101,7 +108,7 @@ export const simulation = {
         cogs: baseCogs,
         labor_cost: baseLabor,
         prime_cost: basePrime,
-        prime_cost_pct: base.prime_cost_pct,
+        prime_cost_pct: basePrimePct,
         prime_margin: baseMargin
       },
       projected: {
@@ -121,19 +128,28 @@ export const simulation = {
   },
 
   async runSimulation() {
+    if (!api.isAuthenticated()) {
+      this.reset();
+      return;
+    }
+
     const payload = {
       ingredient_inflation_pct: this.state.inflationPct,
       price_change_pct: this.state.pricePct,
       labor_change_pct: this.state.laborPct
     };
 
-    const res = await api.post("/api/v1/simulation/run", payload);
-
-    if (res && !res.__isFallback && res.simulation) {
-      this.state.currentResult = res.simulation;
-      this.renderMetrics(res.simulation);
-    } else {
+    try {
+      const res = await api.post("/api/v1/simulation/run", payload);
+      if (res && res.simulation) {
+        this.state.currentResult = res.simulation;
+        this.renderMetrics(res.simulation);
+      }
+    } catch (err) {
       this.computeLocalPreview();
+      if (err.status !== 401) {
+        showToast(`Simulation error: ${err.message}`, "error");
+      }
     }
   },
 
@@ -150,13 +166,13 @@ export const simulation = {
 
     if (heroDelta) {
       const isGain = imp.is_gain !== false;
-      heroDelta.textContent = `${isGain ? '+' : ''}${formatCurrency(imp.margin_delta || 0)}`;
-      heroDelta.className = `hero-delta-val ${isGain ? 'text-emerald' : 'text-rose'}`;
+      heroDelta.textContent = `${isGain ? "+" : ""}${formatCurrency(imp.margin_delta || 0)}`;
+      heroDelta.className = `hero-delta-val ${isGain ? "text-emerald" : "text-rose"}`;
     }
 
     if (heroTitle) {
-      heroTitle.textContent = imp.is_gain 
-        ? "Projected Monthly Prime Margin Expansion" 
+      heroTitle.textContent = imp.is_gain
+        ? "Projected Monthly Prime Margin Expansion"
         : "Projected Monthly Prime Margin Contraction";
     }
 
@@ -182,4 +198,3 @@ function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
 }
-

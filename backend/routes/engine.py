@@ -1,11 +1,71 @@
 from datetime import date
 from collections import defaultdict
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 from backend.middleware.auth import require_auth
+from backend.middleware.errors import database_error_response
+from backend.middleware.tenant import current_restaurant_id
 from backend.services.supabase_client import supabase
 from backend.services.money_engine import calculate_prime_cost, calculate_menu_matrix
+from backend.services.validation import ValidationError, parse_finite_number
 
 engine_bp = Blueprint("engine", __name__, url_prefix="/api/v1")
+
+
+def _bad_request(message):
+    return jsonify({"success": False, "error": message, "code": "BAD_REQUEST"}), 400
+
+
+@engine_bp.route("/daily-financials", methods=["GET"])
+@require_auth
+def get_daily_financials():
+    """
+    GET /api/v1/daily-financials
+    Returns the most recent daily financial record and trailing history for the caller's restaurant.
+    """
+    restaurant_id = current_restaurant_id()
+
+    try:
+        res = (
+            supabase.table("daily_financials")
+            .select("*")
+            .eq("restaurant_id", restaurant_id)
+            .order("date", desc=True)
+            .limit(7)
+            .execute()
+        )
+    except Exception as exc:
+        return database_error_response(exc, "daily_financials query")
+
+    rows = res.data if res and isinstance(res.data, list) else []
+    if not rows:
+        empty_metrics = calculate_prime_cost(
+            cogs=0.0, labor_cost=0.0, gross_sales=0.0, target_prime_cost_pct=60.0
+        )
+        return jsonify({
+            "success": True,
+            "restaurant_id": restaurant_id,
+            "has_data": False,
+            "data": empty_metrics,
+            "history": []
+        }), 200
+
+    latest = rows[0]
+    metrics = calculate_prime_cost(
+        cogs=float(latest.get("cogs") or 0.0),
+        labor_cost=float(latest.get("labor_cost") or 0.0),
+        gross_sales=float(latest.get("gross_sales") or 0.0),
+        target_prime_cost_pct=60.0
+    )
+    metrics["date"] = latest.get("date")
+
+    return jsonify({
+        "success": True,
+        "restaurant_id": restaurant_id,
+        "has_data": True,
+        "data": metrics,
+        "history": rows
+    }), 200
+
 
 @engine_bp.route("/daily-financials", methods=["POST"])
 @require_auth
@@ -13,36 +73,37 @@ def save_daily_financials():
     """
     POST /api/v1/daily-financials
     Accepts gross_sales, cogs, labor_cost.
-    Calculates prime cost metrics and saves to Supabase daily_financials table.
+    Calculates prime cost metrics and saves to Supabase daily_financials table,
+    always stamped with the authenticated caller's restaurant_id.
     """
-    payload = request.get_json() or {}
-    
-    # Extract financial inputs
-    gross_sales = payload.get("gross_sales")
-    cogs = payload.get("cogs")
-    labor_cost = payload.get("labor_cost")
-    target_prime_cost_pct = float(payload.get("target_prime_cost_pct", 60.0))
-    entry_date = payload.get("date", date.today().isoformat())
+    restaurant_id = current_restaurant_id()
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return _bad_request("Request body must be a JSON object")
 
-    if gross_sales is None or cogs is None or labor_cost is None:
-        return jsonify({
-            "success": False,
-            "error": "Missing required fields: gross_sales, cogs, labor_cost",
-            "code": "BAD_REQUEST"
-        }), 400
+    if any(payload.get(k) is None for k in ("gross_sales", "cogs", "labor_cost")):
+        return _bad_request("Missing required fields: gross_sales, cogs, labor_cost")
 
     try:
-        gross_sales = float(gross_sales)
-        cogs = float(cogs)
-        labor_cost = float(labor_cost)
-    except (ValueError, TypeError):
-        return jsonify({
-            "success": False,
-            "error": "gross_sales, cogs, and labor_cost must be valid numbers",
-            "code": "BAD_REQUEST"
-        }), 400
+        gross_sales = parse_finite_number(payload.get("gross_sales"), "gross_sales", min_value=0)
+        cogs = parse_finite_number(payload.get("cogs"), "cogs", min_value=0)
+        labor_cost = parse_finite_number(payload.get("labor_cost"), "labor_cost", min_value=0)
+        target_prime_cost_pct = parse_finite_number(
+            payload.get("target_prime_cost_pct", 60.0), "target_prime_cost_pct",
+            min_value=0, max_value=100
+        )
+    except ValidationError as exc:
+        return _bad_request(str(exc))
 
-    # Calculate Prime Cost metrics
+    if gross_sales <= 0:
+        return _bad_request("gross_sales must be greater than 0 to calculate Prime Cost %")
+
+    entry_date = payload.get("date") or date.today().isoformat()
+    try:
+        date.fromisoformat(str(entry_date))
+    except ValueError:
+        return _bad_request("date must be an ISO date (YYYY-MM-DD)")
+
     metrics = calculate_prime_cost(
         cogs=cogs,
         labor_cost=labor_cost,
@@ -50,10 +111,10 @@ def save_daily_financials():
         target_prime_cost_pct=target_prime_cost_pct
     )
 
-    # Persist to Supabase daily_financials table
+    # restaurant_id always comes from the authenticated profile, never from the payload
     record = {
-        "restaurant_id": g.restaurant_id,
-        "date": entry_date,
+        "restaurant_id": restaurant_id,
+        "date": str(entry_date),
         "gross_sales": metrics["gross_sales"],
         "cogs": metrics["cogs"],
         "labor_cost": metrics["labor_cost"],
@@ -62,78 +123,74 @@ def save_daily_financials():
         "status": metrics["status"]
     }
 
-    supabase_error = None
-    saved_data = record
-
     try:
         res = supabase.table("daily_financials").insert(record).execute()
-        if res and res.data:
-            saved_data = res.data[0]
     except Exception as exc:
-        supabase_error = str(exc)
+        return database_error_response(exc, "daily_financials insert")
+
+    if not res or not res.data:
+        return database_error_response(
+            RuntimeError("daily_financials insert returned no rows"), "daily_financials insert"
+        )
 
     return jsonify({
         "success": True,
         "metrics": metrics,
-        "saved_record": saved_data,
-        "supabase_note": "Record persisted" if not supabase_error else f"Calculation succeeded, database write warning: {supabase_error}"
+        "saved_record": res.data[0]
     }), 201
+
 
 @engine_bp.route("/menu-matrix", methods=["GET"])
 @require_auth
 def get_menu_matrix():
     """
     GET /api/v1/menu-matrix
-    Queries menu_items and item_sales_logs for g.restaurant_id,
+    Queries menu_items and item_sales_logs for the caller's restaurant only,
     calculates the 4-quadrant Kasavana-Smith Menu Matrix, and returns categorized JSON.
     """
-    restaurant_id = g.restaurant_id
-    items_data = []
+    restaurant_id = current_restaurant_id()
 
     try:
-        # 1. Query menu items for the tenant restaurant
-        items_query = supabase.table("menu_items").select("id, name, category, price, cost")
-        if restaurant_id:
-            items_query = items_query.eq("restaurant_id", restaurant_id)
-        items_res = items_query.execute()
-        raw_items = items_res.data if items_res and items_res.data else []
+        items_res = (
+            supabase.table("menu_items")
+            .select("id, name, category, price, cost")
+            .eq("restaurant_id", restaurant_id)
+            .execute()
+        )
+        sales_res = (
+            supabase.table("item_sales_logs")
+            .select("item_id, quantity")
+            .eq("restaurant_id", restaurant_id)
+            .execute()
+        )
+    except Exception as exc:
+        return database_error_response(exc, "menu matrix query")
 
-        # 2. Query item sales logs to aggregate volume sold
-        sales_query = supabase.table("item_sales_logs").select("item_id, quantity")
-        if restaurant_id:
-            sales_query = sales_query.eq("restaurant_id", restaurant_id)
-        sales_res = sales_query.execute()
-        raw_sales = sales_res.data if sales_res and sales_res.data else []
+    raw_items = items_res.data if items_res and items_res.data else []
+    raw_sales = sales_res.data if sales_res and sales_res.data else []
 
-        volume_map = defaultdict(int)
-        for log in raw_sales:
-            item_id = log.get("item_id")
-            qty = log.get("quantity", 0)
-            if item_id:
-                volume_map[item_id] += qty
+    volume_map = defaultdict(int)
+    for log in raw_sales:
+        item_id = log.get("item_id")
+        if item_id:
+            volume_map[item_id] += log.get("quantity") or 0
 
-        # Combine menu items with aggregate sales volume
-        for item in raw_items:
-            item_id = item.get("id")
-            items_data.append({
-                "id": item_id,
-                "name": item.get("name", "Unnamed Item"),
-                "category": item.get("category", "General"),
-                "price": item.get("price", 0.0),
-                "cost": item.get("cost", 0.0),
-                "volume": volume_map.get(item_id, 0)
-            })
-
-    except Exception:
-        # In case tables do not exist yet or connection is offline, return empty matrix structure
-        items_data = []
-
-    # Calculate Kasavana-Smith Matrix
-    matrix_result = calculate_menu_matrix(items_data)
+    items_data = []
+    for item in raw_items:
+        item_id = item.get("id")
+        raw_name = str(item.get("name", "Unnamed Item") or "Unnamed Item")
+        clean_name = raw_name.split(" :: ", 1)[0].strip() if " :: " in raw_name else raw_name
+        items_data.append({
+            "id": item_id,
+            "name": clean_name,
+            "category": item.get("category", "General"),
+            "price": item.get("price", 0.0),
+            "cost": item.get("cost", 0.0),
+            "volume": volume_map.get(item_id, 0)
+        })
 
     return jsonify({
         "success": True,
         "restaurant_id": restaurant_id,
-        "data": matrix_result
+        "data": calculate_menu_matrix(items_data)
     }), 200
-
