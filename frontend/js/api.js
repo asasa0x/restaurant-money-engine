@@ -7,14 +7,14 @@ const getApiBaseUrl = () => {
     return window.__ENV__.API_BASE_URL.replace(/\/$/, "");
   }
   const customOverride = localStorage.getItem("rme_api_base_url");
-  if (customOverride) {
+  if (customOverride && !customOverride.includes("onrender.com")) {
     return customOverride.replace(/\/$/, "");
   }
   const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
   if (isLocal) {
     return window.location.port === "5000" ? "" : "http://127.0.0.1:5000";
   }
-  return "https://restaurant-money-engine-api.onrender.com";
+  return "";
 };
 
 const API_BASE_URL = getApiBaseUrl();

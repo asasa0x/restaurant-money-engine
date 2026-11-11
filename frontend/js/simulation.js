@@ -147,7 +147,7 @@ export const simulation = {
       }
     } catch (err) {
       this.computeLocalPreview();
-      if (err.status !== 401) {
+      if (err.status !== 401 && err.status !== 422) {
         showToast(`Simulation error: ${err.message}`, "error");
       }
     }

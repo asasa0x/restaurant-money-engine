@@ -23,8 +23,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initializeSession();
 });
 
+const DEFAULT_WORKSPACE_EMAIL = "pizzaclub.sargodha@restaurantmoneyengine.com";
+const DEFAULT_WORKSPACE_PASS = "PizzaClubSargodha2026!";
+
+async function autoConnectDefaultWorkspace() {
+  try {
+    const res = await api.post("/api/v1/auth/login", {
+      email: DEFAULT_WORKSPACE_EMAIL,
+      password: DEFAULT_WORKSPACE_PASS
+    });
+    if (res && res.access_token) {
+      api.setSession({
+        access_token: res.access_token,
+        user: res.user,
+        restaurant: res.restaurant
+      });
+      updateAuthHeaderUI();
+      await reloadAllModules();
+      return true;
+    }
+  } catch {
+    // Fall through to manual login modal if auto-connect fails
+  }
+  return false;
+}
+
 async function initializeSession() {
   if (!api.isAuthenticated()) {
+    if (sessionStorage.getItem("rme_explicit_signout") !== "1") {
+      const connected = await autoConnectDefaultWorkspace();
+      if (connected) return;
+    }
     resetAllViews();
     const authModal = document.getElementById("auth-modal");
     if (authModal && !authModal.open) {
@@ -46,6 +75,10 @@ async function initializeSession() {
     }
   } catch {
     api.clearSession();
+    if (sessionStorage.getItem("rme_explicit_signout") !== "1") {
+      const connected = await autoConnectDefaultWorkspace();
+      if (connected) return;
+    }
     updateAuthHeaderUI();
     resetAllViews();
   }
@@ -194,12 +227,27 @@ function setupAuthModal() {
     }
   };
 
+  if (emailInputEl && !emailInputEl.value) {
+    emailInputEl.value = DEFAULT_WORKSPACE_EMAIL;
+  }
+  if (passwordInputEl && !passwordInputEl.value) {
+    passwordInputEl.value = DEFAULT_WORKSPACE_PASS;
+  }
+
   if (modeLoginBtn) modeLoginBtn.addEventListener("click", () => setMode("login"));
   if (modeSignupBtn) modeSignupBtn.addEventListener("click", () => setMode("signup"));
 
   updateAuthHeaderUI();
 
-  if (authBtn && authModal) authBtn.addEventListener("click", () => authModal.showModal());
+  if (authBtn && authModal) {
+    authBtn.addEventListener("click", () => {
+      if (mode === "login") {
+        if (emailInputEl && !emailInputEl.value) emailInputEl.value = DEFAULT_WORKSPACE_EMAIL;
+        if (passwordInputEl && !passwordInputEl.value) passwordInputEl.value = DEFAULT_WORKSPACE_PASS;
+      }
+      authModal.showModal();
+    });
+  }
   if (closeBtn && authModal) closeBtn.addEventListener("click", () => authModal.close());
 
   window.addEventListener("rme:unauthorized", () => {
@@ -223,10 +271,11 @@ function setupAuthModal() {
       try {
         const endpoint = mode === "signup" ? "/api/v1/auth/signup" : "/api/v1/auth/login";
         const payload = mode === "signup"
-          ? { email, password, restaurant_name: restaurantName }
+          ? { email, password, restaurant_name: restaurantName, currency: "PKR" }
           : { email, password };
 
         const res = await api.post(endpoint, payload);
+        sessionStorage.removeItem("rme_explicit_signout");
         api.setSession({
           access_token: res.access_token,
           user: res.user,
@@ -255,6 +304,7 @@ function setupAuthModal() {
 
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
+      sessionStorage.setItem("rme_explicit_signout", "1");
       api.clearSession();
       updateAuthHeaderUI();
       resetAllViews();

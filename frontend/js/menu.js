@@ -316,6 +316,7 @@ export const menu = {
   openScanModal() {
     if (!api.isAuthenticated()) {
       showToast("Please sign in to scan and import a menu.", "error");
+      document.getElementById("auth-modal")?.showModal();
       return;
     }
     const modal = document.getElementById("scan-menu-modal");
@@ -399,14 +400,18 @@ export const menu = {
       }
 
       const items = Array.isArray(res?.items) ? res.items : [];
-      this.state.scannedItems = items.map(item => ({
-        selected: true,
-        name: item.name || "",
-        category: item.category || "General",
-        selling_price: parseFloat(item.selling_price ?? 0),
-        cost_price: parseFloat(item.cost_price ?? 0),
-        description: item.description || ""
-      }));
+      this.state.scannedItems = items.map(item => {
+        const sp = parseFloat(item.selling_price ?? 0);
+        const cp = parseFloat(item.cost_price ?? 0);
+        return {
+          selected: true,
+          name: item.name || "",
+          category: item.category || "General",
+          selling_price: sp,
+          cost_price: cp > 0 ? cp : Math.round(sp * 0.34),
+          description: item.description || ""
+        };
+      });
 
       this.renderScanReviewRows();
 

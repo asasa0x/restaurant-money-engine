@@ -20,6 +20,10 @@ export const dashboard = {
   },
 
   bindEvents() {
+    const dateEl = document.getElementById("entry-date");
+    if (dateEl && !dateEl.value) {
+      dateEl.value = new Date().toISOString().split("T")[0];
+    }
     const form = document.getElementById("daily-financials-form");
     if (form) {
       form.addEventListener("submit", (e) => this.handleLogFinancials(e));
@@ -51,7 +55,16 @@ export const dashboard = {
   render() {
     const f = this.state.financials;
 
-    // 1. KPI cards
+    // 1. KPI cards & currency labels
+    const isPkr = (api.getRestaurant()?.currency || "USD").toUpperCase() === "PKR";
+    const sym = isPkr ? "Rs." : "$";
+    const salesLbl = document.querySelector('label[for="entry-sales"]');
+    const cogsLbl = document.querySelector('label[for="entry-cogs"]');
+    const laborLbl = document.querySelector('label[for="entry-labor"]');
+    if (salesLbl) salesLbl.textContent = `Gross Sales (${sym})`;
+    if (cogsLbl) cogsLbl.textContent = `Food & Beverage Cost (COGS) (${sym})`;
+    if (laborLbl) laborLbl.textContent = `Total Labor Cost (${sym})`;
+
     const salesEl = document.getElementById("kpi-sales");
     const cogsEl = document.getElementById("kpi-cogs");
     const laborEl = document.getElementById("kpi-labor");

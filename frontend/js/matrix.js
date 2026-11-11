@@ -31,7 +31,10 @@ export const matrix = {
 
     const refreshBtn = document.getElementById("btn-refresh-matrix");
     if (refreshBtn) {
-      refreshBtn.addEventListener("click", () => this.loadMatrix());
+      refreshBtn.addEventListener("click", async () => {
+        await this.loadMatrix();
+        showToast("Kasavana-Smith Menu Matrix refreshed!", "info");
+      });
     }
   },
 
