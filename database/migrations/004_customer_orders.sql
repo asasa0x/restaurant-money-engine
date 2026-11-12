@@ -85,3 +85,4 @@ DROP POLICY IF EXISTS tenant_delete_order_items ON public.order_items;
 CREATE POLICY tenant_delete_order_items ON public.order_items
     FOR DELETE
     USING (restaurant_id = public.current_restaurant_id());
+

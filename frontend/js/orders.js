@@ -5,7 +5,7 @@
 
 import { api, showToast, formatCurrency } from "./api.js";
 
-const QR_LIB_URL = "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js";
+const QR_LIB_URL = "js/vendor/qrcode.min.js";
 const POLL_MS = 15000;
 
 const NEXT_STEP = {
@@ -211,14 +211,40 @@ export const orders = {
   },
 
   async _loadQrLib() {
-    if (window.QRCode) return;
+    if (typeof window.qrcode === "function") return;
     await new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = QR_LIB_URL;
       script.onload = resolve;
-      script.onerror = () => reject(new Error("Could not load the QR code library (check internet)."));
+      script.onerror = () => reject(new Error("Could not load local QR generator library."));
       document.head.appendChild(script);
     });
+  },
+
+  _drawQrToCanvas(canvas, text, size = 260, quietModules = 2) {
+    const qr = window.qrcode(0, "M");
+    qr.addData(text);
+    qr.make();
+
+    const count = qr.getModuleCount();
+    const totalModules = count + quietModules * 2;
+    const cellSize = Math.floor(size / totalModules) || 4;
+    const actualSize = totalModules * cellSize;
+
+    canvas.width = actualSize;
+    canvas.height = actualSize;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, actualSize, actualSize);
+
+    ctx.fillStyle = "#0b0f19";
+    for (let r = 0; r < count; r += 1) {
+      for (let c = 0; c < count; c += 1) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect((c + quietModules) * cellSize, (r + quietModules) * cellSize, cellSize, cellSize);
+        }
+      }
+    }
   },
 
   async generateQr() {
@@ -231,7 +257,7 @@ export const orders = {
     try {
       await this._loadQrLib();
       const canvas = document.getElementById("qr-canvas");
-      await window.QRCode.toCanvas(canvas, url, { width: 260, margin: 2 });
+      this._drawQrToCanvas(canvas, url, 260, 2);
       this.state.qrUrl = url;
       const table = (document.getElementById("qr-table-number")?.value || "").trim();
       document.getElementById("qr-link-input").value = url;
@@ -290,3 +316,4 @@ export const orders = {
     img.onload = () => win.print();
   },
 };
+

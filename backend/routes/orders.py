@@ -426,3 +426,4 @@ def update_order_status(order_id):
     order = res.data[0]
     order["code"] = _order_code(order["id"])
     return jsonify({"success": True, "data": order}), 200
+
