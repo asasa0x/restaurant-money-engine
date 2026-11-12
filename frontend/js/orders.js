@@ -6,7 +6,7 @@
 import { api, showToast, formatCurrency } from "./api.js";
 
 const QR_LIB_URL = "js/vendor/qrcode.min.js";
-const POLL_MS = 15000;
+const POLL_MS = 5000;
 
 const NEXT_STEP = {
   pending: { status: "accepted", label: "Accept" },
@@ -42,6 +42,8 @@ export const orders = {
     document.getElementById("btn-copy-qr-link")?.addEventListener("click", () => this.copyLink());
     document.getElementById("btn-download-qr")?.addEventListener("click", () => this.downloadQr());
     document.getElementById("btn-print-qr")?.addEventListener("click", () => this.printQr());
+    document.getElementById("btn-print-bulk-qr")?.addEventListener("click", () => this.printBulkQr());
+    document.getElementById("btn-open-led-board")?.addEventListener("click", () => this.openLedBoard());
     document.getElementById("btn-refresh-orders")?.addEventListener("click", () => this.loadOrders(true));
     document.getElementById("orders-status-filter")?.addEventListener("change", (e) => {
       this.state.filter = e.target.value || "ALL";
@@ -126,10 +128,11 @@ export const orders = {
       const card = this.node("div", `order-card order-${order.status}`);
 
       const head = this.node("div", "order-card-head");
-      const title = this.node("div");
+      const title = this.node("div", "order-title-group");
+      const where = order.table_number ? `TABLE ${order.table_number}` : "TAKEAWAY";
+      title.appendChild(this.node("span", "order-table-badge", where));
       title.appendChild(this.node("strong", "order-code", `#${order.code}`));
-      const where = order.table_number ? `Table ${order.table_number}` : "Takeaway";
-      title.appendChild(this.node("span", "order-meta", ` · ${where} · ${order.customer_name || "Customer"}`));
+      title.appendChild(this.node("span", "order-meta", ` · ${order.customer_name || "Customer"}`));
       head.append(title, this.node("span", `order-status-pill ${order.status}`, order.status));
       card.appendChild(head);
 
@@ -314,6 +317,96 @@ export const orders = {
     doc.body.append(name, sub, img, table);
     win.focus();
     img.onload = () => win.print();
+  },
+
+  openLedBoard() {
+    const restaurant = api.getRestaurant();
+    if (!restaurant?.id) {
+      showToast("Please sign in first.", "error");
+      return;
+    }
+    const url = `${window.location.origin}/led.html?r=${encodeURIComponent(restaurant.id)}`;
+    window.open(url, "_blank", "noopener");
+  },
+
+  async printBulkQr() {
+    if (!api.isAuthenticated()) {
+      showToast("Please sign in first.", "error");
+      return;
+    }
+    const restaurant = api.getRestaurant();
+    if (!restaurant?.id) return;
+
+    const fromVal = parseInt(document.getElementById("qr-bulk-from")?.value || "1", 10);
+    const toVal = parseInt(document.getElementById("qr-bulk-to")?.value || "50", 10);
+    if (isNaN(fromVal) || isNaN(toVal) || fromVal < 1 || toVal < fromVal || toVal - fromVal >= 200) {
+      showToast("Enter a valid table range (max 200 tables at once, e.g. 1 to 50).", "error");
+      return;
+    }
+
+    try {
+      await this._loadQrLib();
+      const win = window.open("", "_blank", "width=960,height=720");
+      if (!win) {
+        showToast("Allow pop-ups to generate the printable bulk QR sheet.", "error");
+        return;
+      }
+
+      const doc = win.document;
+      doc.title = `${restaurant.name} — Table QRs (${fromVal} to ${toVal})`;
+      const style = doc.createElement("style");
+      style.textContent = `
+        body { font-family: sans-serif; margin: 16px; color: #111827; }
+        .bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .card { border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px 8px; text-align: center; page-break-inside: avoid; }
+        .card h3 { margin: 0 0 4px; font-size: 13px; color: #475569; }
+        .card h2 { margin: 6px 0 2px; font-size: 18px; }
+        .card p { margin: 0; font-size: 11px; color: #64748b; }
+        @media print { .bar { display: none; } body { margin: 8px; } }
+      `;
+      doc.head.appendChild(style);
+
+      const bar = doc.createElement("div");
+      bar.className = "bar";
+      const heading = doc.createElement("strong");
+      heading.textContent = `${restaurant.name} — Tables ${fromVal} to ${toVal}`;
+      const printBtn = doc.createElement("button");
+      printBtn.textContent = "Print / Save as PDF";
+      printBtn.style.cssText = "padding:8px 14px;font-weight:bold;cursor:pointer;";
+      printBtn.onclick = () => win.print();
+      bar.append(heading, printBtn);
+      doc.body.appendChild(bar);
+
+      const grid = doc.createElement("div");
+      grid.className = "grid";
+      const tempCanvas = doc.createElement("canvas");
+
+      for (let t = fromVal; t <= toVal; t += 1) {
+        const url = `${window.location.origin}/order.html?r=${encodeURIComponent(restaurant.id)}&t=${t}`;
+        this._drawQrToCanvas(tempCanvas, url, 170, 2);
+
+        const card = doc.createElement("div");
+        card.className = "card";
+        const rName = doc.createElement("h3");
+        rName.textContent = restaurant.name || "Menu";
+        const img = doc.createElement("img");
+        img.src = tempCanvas.toDataURL("image/png");
+        img.style.width = "145px";
+        const tTitle = doc.createElement("h2");
+        tTitle.textContent = `TABLE ${t}`;
+        const hint = doc.createElement("p");
+        hint.textContent = "Scan to Order";
+        card.append(rName, img, tTitle, hint);
+        grid.appendChild(card);
+      }
+
+      doc.body.appendChild(grid);
+      win.focus();
+      showToast(`Generated ${toVal - fromVal + 1} Table QRs (${fromVal}–${toVal})!`, "success");
+    } catch (err) {
+      showToast(err.message || "Could not generate bulk QR sheet", "error");
+    }
   },
 };
 

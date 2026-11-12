@@ -347,6 +347,76 @@ def track_order(order_id):
     }), 200
 
 
+@public_bp.route("/restaurants/<restaurant_id>/led", methods=["GET"])
+def public_led_board(restaurant_id):
+    """
+    Public LED / Kitchen Display board feed for a restaurant.
+    Returns active orders (pending, accepted, preparing, ready) with table number,
+    order code, status, timestamps, notes, and item names/quantities.
+    Never exposes customer phone numbers or financial totals.
+    """
+    rid = _valid_uuid(restaurant_id)
+    if not rid:
+        return _error("Restaurant not found", "NOT_FOUND", 404)
+
+    active_statuses = ["pending", "accepted", "preparing", "ready"]
+    try:
+        restaurant = _fetch_restaurant(rid)
+        if not restaurant:
+            return _error("Restaurant not found", "NOT_FOUND", 404)
+
+        order_res = (
+            supabase.table("orders")
+            .select("id, table_number, status, notes, created_at, updated_at")
+            .eq("restaurant_id", rid)
+            .in_("status", active_statuses)
+            .order("created_at", desc=False)
+            .limit(100)
+            .execute()
+        )
+        raw_orders = order_res.data if order_res and order_res.data else []
+
+        items_by_order = defaultdict(list)
+        if raw_orders:
+            items_res = (
+                supabase.table("order_items")
+                .select("order_id, item_name, quantity")
+                .eq("restaurant_id", rid)
+                .in_("order_id", [o["id"] for o in raw_orders])
+                .execute()
+            )
+            for item in (items_res.data if items_res and items_res.data else []):
+                items_by_order[item["order_id"]].append({
+                    "name": item.get("item_name"),
+                    "quantity": item.get("quantity"),
+                })
+    except Exception as exc:
+        return database_error_response(exc, "led board query")
+
+    board_orders = []
+    for o in raw_orders:
+        board_orders.append({
+            "id": o["id"],
+            "code": _order_code(o["id"]),
+            "table_number": o.get("table_number"),
+            "status": o.get("status"),
+            "notes": o.get("notes"),
+            "created_at": o.get("created_at"),
+            "updated_at": o.get("updated_at"),
+            "items": items_by_order.get(o["id"], []),
+        })
+
+    return jsonify({
+        "success": True,
+        "restaurant": {
+            "id": restaurant["id"],
+            "name": restaurant.get("name"),
+        },
+        "count": len(board_orders),
+        "orders": board_orders,
+    }), 200
+
+
 # ---------------------------------------------------------------------------
 # Owner / staff: list + update orders (tenant scoped)
 # ---------------------------------------------------------------------------

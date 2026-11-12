@@ -413,6 +413,23 @@
               <button type="button" class="btn btn-secondary btn-sm" id="btn-print-qr">Print</button>
             </div>
           </div>
+
+          <hr class="qr-divider">
+          <div class="qr-bulk-box">
+            <h3 class="qr-bulk-title">Generate All Tables Once (Bulk Print Sheet)</h3>
+            <p class="panel-subtitle" style="margin-bottom: 0.65rem;">Print unique QR codes for Table 1 to 50 in one click</p>
+            <div class="qr-bulk-inputs">
+              <div>
+                <label class="form-label" for="qr-bulk-from">From Table</label>
+                <input type="number" class="form-input" id="qr-bulk-from" min="1" max="500" value="1">
+              </div>
+              <div>
+                <label class="form-label" for="qr-bulk-to">To Table</label>
+                <input type="number" class="form-input" id="qr-bulk-to" min="1" max="500" value="50">
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="btn-print-bulk-qr" style="width: 100%; margin-top: 0.65rem;">🖨️ Generate &amp; Print All Table QRs</button>
+          </div>
         </div>
 
         <div class="panel">
@@ -421,7 +438,8 @@
               <h2 class="panel-title">Live Orders <span id="orders-pending-count" class="pct-pill pct-medium">0 pending</span></h2>
               <p class="panel-subtitle">New orders appear automatically</p>
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-open-led-board">📺 Open Live LED Screen</button>
               <select id="orders-status-filter" class="form-select" style="width: auto;" aria-label="Filter orders">
                 <option value="ALL">All</option>
                 <option value="pending">Pending</option>

@@ -354,7 +354,7 @@ class TestCustomerPageStatic(unittest.TestCase):
         frontend = Path(__file__).resolve().parent.parent / "frontend"
         html = (frontend / "order.html").read_text(encoding="utf-8")
         js = (frontend / "js" / "customer-order.js").read_text(encoding="utf-8")
-        for element_id in ("co-menu", "co-cart-bar", "co-cart-modal", "co-checkout-form", "co-success-modal"):
+        for element_id in ("co-menu", "co-cart-bar", "co-cart-modal", "co-checkout-form", "co-success-modal", "co-success-table"):
             self.assertIn(f'id="{element_id}"', html)
         self.assertIn("customer-order.js", html)
         # client sends only ids + quantities; the server prices the order
@@ -367,9 +367,56 @@ class TestCustomerPageStatic(unittest.TestCase):
         from pathlib import Path
         frontend = Path(__file__).resolve().parent.parent / "frontend"
         html = (frontend / "index.html").read_text(encoding="utf-8")
-        for element_id in ("tab-orders", "btn-generate-qr", "qr-canvas", "orders-list"):
+        for element_id in ("tab-orders", "btn-generate-qr", "btn-print-bulk-qr", "btn-open-led-board", "qr-canvas", "orders-list"):
             self.assertIn(f'id="{element_id}"', html)
         self.assertIn('data-tab="tab-orders"', html)
+
+    def test_led_page_is_wired_without_innerhtml(self):
+        from pathlib import Path
+        frontend = Path(__file__).resolve().parent.parent / "frontend"
+        html = (frontend / "led.html").read_text(encoding="utf-8")
+        js = (frontend / "js" / "led.js").read_text(encoding="utf-8")
+        for element_id in ("led-list-pending", "led-list-preparing", "led-list-ready", "led-mode-btn"):
+            self.assertIn(f'id="{element_id}"', html)
+        self.assertIn("led.js", html)
+        self.assertNotIn("innerHTML", js)
+
+
+class TestPublicLedBoard(OrderingTestBase):
+    def test_led_returns_active_orders_with_table_and_no_sensitive_fields(self):
+        res_place = self.place(body=self.order_body(
+            customer_name="Table 50 Guest",
+            table_number="50",
+            customer_phone="0300-9998887",
+        ))
+        self.assertEqual(res_place.status_code, 201)
+
+        # Completed order should not appear on the active LED board
+        self.db.tables["orders"].append({
+            "id": str(uuid.uuid4()),
+            "restaurant_id": REST_A,
+            "table_number": "12",
+            "customer_name": "Done Guest",
+            "status": "completed",
+            "total": 500,
+            "created_at": "2026-01-01T00:00:00+00:00",
+        })
+
+        res = self.client.get(f"/api/v1/public/restaurants/{REST_A}/led")
+        self.assertEqual(res.status_code, 200)
+        body = res.get_json()
+        self.assertEqual(body["count"], 1)
+        order = body["orders"][0]
+        self.assertEqual(order["table_number"], "50")
+        self.assertEqual(order["status"], "pending")
+        self.assertEqual(len(order["items"]), 2)
+        text = res.get_data(as_text=True)
+        self.assertNotIn("0300-9998887", text)
+        self.assertNotIn("3120", text)
+
+    def test_led_unknown_restaurant_is_404(self):
+        self.assertEqual(self.client.get("/api/v1/public/restaurants/bad-id/led").status_code, 404)
+        self.assertEqual(self.client.get(f"/api/v1/public/restaurants/{uuid.uuid4()}/led").status_code, 404)
 
 
 if __name__ == "__main__":

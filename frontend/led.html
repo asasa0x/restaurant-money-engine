@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Orders LED Display</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/order.css">
+</head>
+<body class="led-body">
+
+  <header class="led-header">
+    <div>
+      <h1 id="led-restaurant-name">Live Order Board</h1>
+      <p class="led-sub" id="led-sync-status">Connecting to live kitchen feed…</p>
+    </div>
+    <div class="led-controls">
+      <span id="led-clock" class="led-clock">--:--:--</span>
+      <button type="button" class="btn btn-secondary btn-sm" id="led-mode-btn">Mode: Kitchen (Items)</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="led-sound-btn">🔔 Sound: ON</button>
+      <button type="button" class="btn btn-primary btn-sm" id="led-fullscreen-btn">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <main class="led-grid">
+    <section class="led-col led-col-pending">
+      <div class="led-col-head">
+        <h2>🔔 New Orders</h2>
+        <span id="led-count-pending" class="led-count">0</span>
+      </div>
+      <div id="led-list-pending" class="led-list"></div>
+    </section>
+
+    <section class="led-col led-col-preparing">
+      <div class="led-col-head">
+        <h2>👨‍🍳 Accepted &amp; Preparing</h2>
+        <span id="led-count-preparing" class="led-count">0</span>
+      </div>
+      <div id="led-list-preparing" class="led-list"></div>
+    </section>
+
+    <section class="led-col led-col-ready">
+      <div class="led-col-head">
+        <h2>✅ Ready to Serve</h2>
+        <span id="led-count-ready" class="led-count">0</span>
+      </div>
+      <div id="led-list-ready" class="led-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/led.js"></script>
+</body>
+</html>

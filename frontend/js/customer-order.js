@@ -343,6 +343,16 @@ function showSuccess(order) {
 
   $("co-success-code").textContent = order.code;
   $("co-success-total").textContent = money(order.total);
+  const tableBadge = $("co-success-table");
+  if (tableBadge) {
+    if (order.table_number) {
+      tableBadge.textContent = `Table ${order.table_number}`;
+      tableBadge.hidden = false;
+    } else {
+      tableBadge.textContent = "Takeaway";
+      tableBadge.hidden = false;
+    }
+  }
   const lines = $("co-success-lines");
   lines.replaceChildren();
   (order.items || []).forEach((item) => {

@@ -130,3 +130,64 @@
 .order-notes { font-size: 0.82rem; color: var(--amber); margin-bottom: 0.4rem; }
 .order-card-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .order-actions { display: flex; gap: 0.4rem; }
+
+.order-title-group { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.order-table-badge {
+  background: var(--emerald-subtle); color: var(--emerald); border: 1px solid var(--emerald);
+  border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em;
+}
+.qr-divider { border: none; border-top: 1px solid var(--border-subtle); margin: 1.2rem 0; }
+.qr-bulk-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.25rem; }
+.qr-bulk-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+
+/* Live LED / Kitchen Display Board */
+.led-body { min-height: 100vh; display: flex; flex-direction: column; padding: 0; }
+.led-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem;
+}
+.led-header h1 { font-size: 1.45rem; font-weight: 800; }
+.led-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem; }
+.led-controls { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
+.led-clock { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--emerald); margin-right: 0.5rem; }
+
+.led-grid {
+  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1rem 1.5rem;
+}
+@media (max-width: 960px) { .led-grid { grid-template-columns: 1fr; } }
+
+.led-col {
+  background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.led-col-head {
+  display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border-color); background: var(--bg-card);
+}
+.led-col-head h2 { font-size: 1.1rem; font-weight: 800; }
+.led-count {
+  font-size: 1rem; font-weight: 800; padding: 0.2rem 0.7rem; border-radius: 9999px;
+  background: var(--bg-canvas); border: 1px solid var(--border-color);
+}
+.led-list { padding: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; }
+.led-empty { color: var(--text-dim); text-align: center; padding: 2.5rem 1rem; font-size: 0.95rem; }
+
+.led-card {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-left: 6px solid var(--amber);
+  border-radius: var(--radius-md); padding: 0.95rem 1rem;
+}
+.led-card.led-status-accepted, .led-card.led-status-preparing { border-left-color: var(--indigo); }
+.led-card.led-status-ready { border-left-color: var(--emerald); background: rgba(16, 185, 129, 0.08); }
+
+.led-card-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+.led-table-badge {
+  font-size: 1.25rem; font-weight: 900; letter-spacing: 0.04em;
+  background: var(--emerald); color: #0b0f19; padding: 0.25rem 0.75rem; border-radius: 8px;
+}
+.led-code { font-size: 1.05rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; }
+.led-time-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.55rem; }
+.led-elapsed { font-weight: 700; color: var(--amber); }
+.led-items { list-style: none; padding: 0.45rem 0 0; margin: 0; border-top: 1px solid var(--border-subtle); font-size: 0.98rem; }
+.led-items li { padding: 0.2rem 0; }
+.led-qty { color: var(--emerald); font-weight: 800; }
+.led-notes { margin-top: 0.45rem; font-size: 0.85rem; color: var(--amber); font-weight: 600; }
