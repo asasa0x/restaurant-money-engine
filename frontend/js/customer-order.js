@@ -175,6 +175,7 @@ function renderMenu() {
   });
 
   grouped.forEach((items, category) => {
+    items.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
     const section = el("section", "co-section");
     section.appendChild(el("h2", "", category));
     const grid = el("div", "co-grid");
