@@ -3,3 +3,4 @@
 
 ALTER TABLE public.restaurants
     ADD COLUMN IF NOT EXISTS payment_details JSONB NOT NULL DEFAULT '{}'::jsonb;
+

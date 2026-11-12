@@ -150,10 +150,13 @@ function renderMenu() {
   const container = $("co-menu");
   container.replaceChildren();
   const query = state.search.toLowerCase().trim();
+  const terms = query ? query.split(/\s+/) : [];
   const visible = state.items.filter((item) => {
     const catOk = state.category === "ALL" || item.category === state.category;
-    const textOk = !query || item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query);
-    return catOk && textOk;
+    if (!catOk) return false;
+    if (!terms.length) return true;
+    const haystack = `${item.name} ${item.description} ${item.category}`.toLowerCase();
+    return terms.every((t) => haystack.includes(t));
   });
 
   const status = $("co-status");
@@ -572,6 +575,10 @@ function bindEvents() {
   $("co-checkout-form").addEventListener("submit", placeOrder);
   $("co-search").addEventListener("input", (e) => {
     state.search = e.target.value || "";
+    if (state.search.trim() && state.category !== "ALL") {
+      state.category = "ALL";
+      renderCategories();
+    }
     renderMenu();
   });
   $("co-new-order").addEventListener("click", () => {
