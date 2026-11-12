@@ -23,31 +23,39 @@
 }
 .co-chip.active { background: var(--emerald); color: #0b0f19; border-color: var(--emerald); }
 
-.co-main { max-width: 720px; margin: 0 auto; padding: 1rem; }
+.co-main { max-width: 1120px; margin: 0 auto; padding: 1.1rem 1rem; }
 .co-status { text-align: center; color: var(--text-muted); padding: 2rem 0; }
 .co-status.error { color: var(--rose); }
 
-.co-section { margin-bottom: 1.5rem; scroll-margin-top: 9rem; }
-.co-section h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.6rem; }
+.co-section { margin-bottom: 1.65rem; scroll-margin-top: 9rem; }
+.co-section h2 { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.75rem; }
+.co-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
 
 .co-item {
   display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
   background: var(--bg-surface); border: 1px solid var(--border-color);
-  border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 0.6rem;
+  border-radius: var(--radius-md); padding: 0.9rem 1rem; height: 100%;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
+.co-item:hover { border-color: var(--emerald); }
 .co-item-info { min-width: 0; }
-.co-item-name { font-weight: 700; }
-.co-item-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
-.co-item-price { color: var(--emerald); font-weight: 700; margin-top: 0.3rem; }
+.co-item-name { font-weight: 700; line-height: 1.3; }
+.co-item-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+.co-item-price { color: var(--emerald); font-weight: 700; margin-top: 0.35rem; font-size: 0.95rem; }
 
-.co-stepper { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+.co-stepper { display: flex; align-items: center; gap: 0.45rem; flex: 0 0 auto; }
 .co-stepper button {
   width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1px solid var(--border-color);
-  background: var(--bg-card); color: var(--text-main); font-size: 1.15rem; font-weight: 700; cursor: pointer;
+  background: var(--bg-card); color: var(--text-main); font-size: 1.1rem; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .co-stepper button.add { background: var(--emerald); color: #0b0f19; border-color: var(--emerald); }
 .co-stepper .qty { min-width: 1.3rem; text-align: center; font-weight: 700; }
-.co-add-btn { border-radius: 9999px; padding: 0.45rem 1.1rem; }
+.co-stepper button.co-add-btn {
+  width: auto; height: auto; border-radius: 9999px;
+  padding: 0.45rem 1rem; font-size: 0.85rem; white-space: nowrap;
+  background: var(--emerald); color: #0b0f19; border-color: var(--emerald);
+}
 
 .co-cart-bar {
   position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 45;
@@ -198,9 +206,9 @@
 .co-payment-badge { background: var(--indigo-subtle); color: var(--indigo); border: 1px solid var(--indigo); border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.78rem; font-weight: 700; }
 
 .co-payment-info {
-  background: var(--bg-soft, #f8fafc);
-  border: 1px solid var(--border, #e2e8f0);
-  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   padding: 0.75rem 0.9rem;
   margin-bottom: 0.85rem;
   font-size: 0.88rem;
@@ -209,7 +217,7 @@
 .co-payment-info-title {
   font-weight: 700;
   margin-bottom: 0.35rem;
-  color: var(--text, #0f172a);
+  color: var(--text-main);
 }
 
 .co-payment-row {
@@ -222,25 +230,27 @@
 }
 
 .co-payment-row span {
-  color: var(--muted, #64748b);
+  color: var(--text-muted);
 }
 
 .co-payment-row strong {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text-main);
   word-break: break-all;
 }
 
 .co-copy-btn {
-  padding: 0.18rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   font-size: 0.75rem;
   border-radius: 6px;
-  border: 1px solid var(--border, #cbd5e1);
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
   cursor: pointer;
 }
 
 .co-payment-note {
   margin-top: 0.35rem;
-  color: var(--muted, #475569);
+  color: var(--text-muted);
   font-size: 0.82rem;
 }

@@ -177,6 +177,7 @@ function renderMenu() {
   grouped.forEach((items, category) => {
     const section = el("section", "co-section");
     section.appendChild(el("h2", "", category));
+    const grid = el("div", "co-grid");
     items.forEach((item) => {
       const row = el("div", "co-item");
       const info = el("div", "co-item-info");
@@ -184,8 +185,9 @@ function renderMenu() {
       if (item.description) info.appendChild(el("div", "co-item-desc", item.description));
       info.appendChild(el("div", "co-item-price", money(item.price)));
       row.append(info, stepper(item));
-      section.appendChild(row);
+      grid.appendChild(row);
     });
+    section.appendChild(grid);
     container.appendChild(section);
   });
 }
