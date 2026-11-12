@@ -297,6 +297,15 @@ function bindControls() {
 
   $("led-auth-cancel")?.addEventListener("click", () => $("led-auth-modal")?.close());
 
+  $("led-toggle-password")?.addEventListener("click", (e) => {
+    const input = $("led-auth-password");
+    if (!input) return;
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    e.currentTarget.textContent = show ? "🙈" : "👁️";
+    e.currentTarget.setAttribute("aria-label", show ? "Hide password" : "Show password");
+  });
+
   $("led-auth-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const errEl = $("led-auth-error");

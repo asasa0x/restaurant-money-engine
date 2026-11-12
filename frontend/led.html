@@ -58,12 +58,15 @@
     </p>
     <form id="led-auth-form">
       <div class="form-group">
-        <label class="form-label" for="led-auth-email">Email Address</label>
-        <input type="email" class="form-input" id="led-auth-email" required autocomplete="email" placeholder="staff@restaurant.com">
+        <label class="form-label" for="led-auth-email">Username</label>
+        <input type="text" class="form-input" id="led-auth-email" required autocomplete="username" placeholder="Enter the username">
       </div>
       <div class="form-group">
         <label class="form-label" for="led-auth-password">Password</label>
-        <input type="password" class="form-input" id="led-auth-password" required minlength="6" autocomplete="current-password" placeholder="••••••••">
+        <div class="password-wrap">
+          <input type="password" class="form-input" id="led-auth-password" required minlength="6" autocomplete="current-password" placeholder="Enter the password">
+          <button type="button" class="password-toggle-btn" id="led-toggle-password" aria-label="Show password">👁️</button>
+        </div>
       </div>
       <p id="led-auth-error" class="co-form-error" role="alert" hidden></p>
       <div class="modal-footer">
