@@ -581,6 +581,23 @@ function bindEvents() {
     }
     renderMenu();
   });
+  $("co-close-success")?.addEventListener("click", () => {
+    $("co-success-modal").close();
+  });
+  $("co-refresh-status")?.addEventListener("click", async () => {
+    const id = localStorage.getItem(LAST_ORDER_KEY);
+    if (!id) return;
+    const btn = $("co-refresh-status");
+    if (btn) { btn.disabled = true; btn.textContent = "Checking…"; }
+    try {
+      const res = await call(`/api/v1/public/orders/${encodeURIComponent(id)}`);
+      setStatus(res.order.status, res.order);
+    } catch {
+      /* ignore transient errors */
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "↻ Refresh Status"; }
+    }
+  });
   $("co-new-order").addEventListener("click", () => {
     clearInterval(state.trackTimer);
     clearInterval(state.clockTimer);
