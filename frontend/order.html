@@ -68,9 +68,17 @@
     <p class="co-muted">Order code</p>
     <p class="co-order-code" id="co-success-code">--------</p>
     <p class="co-status-line">Status: <strong id="co-success-status" class="co-status-pill">Pending</strong></p>
+    <div id="co-confirm-banner" class="co-confirm-banner" hidden></div>
+    <div id="co-progress" class="co-progress" aria-label="Order progress">
+      <span class="co-step done" data-step="pending">Placed</span>
+      <span class="co-step" data-step="accepted">Accepted</span>
+      <span class="co-step" data-step="preparing">Preparing</span>
+      <span class="co-step" data-step="ready">Ready</span>
+    </div>
+    <p id="co-time-info" class="co-time-info"></p>
     <div id="co-success-lines" class="co-success-lines"></div>
     <div class="co-cart-total-row"><span>Total</span><strong id="co-success-total">0</strong></div>
-    <p class="co-muted">Keep this page open — the status updates automatically. Pay at the counter / table.</p>
+    <p class="co-muted">Keep this page open — confirmation &amp; status update automatically. Pay at the counter / table.</p>
     <div class="modal-footer">
       <button type="button" class="btn btn-primary" id="co-new-order">Order More</button>
     </div>

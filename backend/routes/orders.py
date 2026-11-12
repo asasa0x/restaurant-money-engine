@@ -287,6 +287,8 @@ def place_order(restaurant_id):
             "currency": restaurant.get("currency") or "USD",
             "restaurant_name": restaurant.get("name"),
             "table_number": table_number,
+            "created_at": order_row.get("created_at"),
+            "updated_at": order_row.get("updated_at"),
             "items": [
                 {"name": l["item_name"], "quantity": l["quantity"],
                  "unit_price": l["unit_price"], "line_total": l["line_total"]}
@@ -305,7 +307,7 @@ def track_order(order_id):
     try:
         order_res = (
             supabase.table("orders")
-            .select("id, restaurant_id, status, total, table_number, created_at")
+            .select("id, restaurant_id, status, total, table_number, created_at, updated_at")
             .eq("id", oid)
             .limit(1)
             .execute()
@@ -335,6 +337,7 @@ def track_order(order_id):
             "restaurant_name": (restaurant or {}).get("name"),
             "table_number": order.get("table_number"),
             "created_at": order.get("created_at"),
+            "updated_at": order.get("updated_at"),
             "items": [
                 {"name": i["item_name"], "quantity": i["quantity"],
                  "unit_price": float(i["unit_price"]), "line_total": float(i["line_total"])}

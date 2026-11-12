@@ -24,6 +24,10 @@ const state = {
   category: "ALL",
   search: "",
   trackTimer: null,
+  clockTimer: null,
+  lastStatus: null,
+  orderCreatedAt: null,
+  orderUpdatedAt: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -275,7 +279,68 @@ async function placeOrder(event) {
 }
 
 // ------------------------------------------------------- confirmation/tracking
+function formatClock(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatElapsed(isoStr) {
+  if (!isoStr) return "";
+  const ms = Date.now() - new Date(isoStr).getTime();
+  if (isNaN(ms) || ms < 0) return "";
+  const secs = Math.floor(ms / 1000);
+  const mins = Math.floor(secs / 60);
+  const rem = secs % 60;
+  return mins > 0 ? `${mins}m ${rem}s` : `${rem}s`;
+}
+
+function renderTimeInfo(status) {
+  const elInfo = $("co-time-info");
+  if (!elInfo) return;
+  const placed = formatClock(state.orderCreatedAt);
+  const updated = formatClock(state.orderUpdatedAt);
+  const elapsed = formatElapsed(state.orderCreatedAt);
+
+  const parts = [];
+  if (placed) parts.push(`Placed: ${placed}`);
+  if (status !== "pending" && updated) {
+    const label = status === "accepted" ? "Accepted"
+      : status === "preparing" ? "Preparing since"
+      : status === "ready" ? "Ready at"
+      : status === "completed" ? "Completed at"
+      : status === "cancelled" ? "Cancelled at"
+      : "Updated";
+    parts.push(`${label}: ${updated}`);
+  }
+  if (elapsed && !FINAL_STATUSES.includes(status)) {
+    parts.push(`Elapsed: ${elapsed}`);
+  }
+  elInfo.textContent = parts.join("  ·  ");
+}
+
+function notifyCustomerChime() {
+  try {
+    if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 880;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => { osc.stop(); ctx.close(); }, 220);
+  } catch {
+    /* audio/vibration not available */
+  }
+}
+
 function showSuccess(order) {
+  state.lastStatus = order.status;
+  state.orderCreatedAt = order.created_at || new Date().toISOString();
+  state.orderUpdatedAt = order.updated_at || state.orderCreatedAt;
+
   $("co-success-code").textContent = order.code;
   $("co-success-total").textContent = money(order.total);
   const lines = $("co-success-lines");
@@ -285,42 +350,93 @@ function showSuccess(order) {
     row.append(el("span", "", `${item.quantity} × ${item.name}`), el("span", "", money(item.line_total)));
     lines.appendChild(row);
   });
-  setStatus(order.status);
+  setStatus(order.status, order);
   const modal = $("co-success-modal");
   if (!modal.open) modal.showModal();
   startTracking(order.id);
 }
 
-function setStatus(status) {
+function setStatus(status, orderData = null) {
+  if (orderData?.created_at) state.orderCreatedAt = orderData.created_at;
+  if (orderData?.updated_at) state.orderUpdatedAt = orderData.updated_at;
+
+  const prev = state.lastStatus;
+  if (prev && prev !== status && ["accepted", "preparing", "ready"].includes(status)) {
+    notifyCustomerChime();
+  }
+  state.lastStatus = status;
+
   const pill = $("co-success-status");
   pill.textContent = status;
   pill.className = `co-status-pill ${status}`;
   const titles = {
     pending: "Order placed!",
-    accepted: "Order accepted",
+    accepted: "Order Confirmed!",
     preparing: "Being prepared",
     ready: "Your order is ready!",
     completed: "Order completed",
     cancelled: "Order cancelled",
   };
   $("co-success-title").textContent = titles[status] || "Order update";
+
+  const banner = $("co-confirm-banner");
+  if (banner) {
+    const updatedStr = formatClock(state.orderUpdatedAt);
+    const timeSuffix = updatedStr ? ` at ${updatedStr}` : "";
+    if (status === "accepted") {
+      banner.textContent = `✓ Confirmed by restaurant${timeSuffix}! Your order is in the queue.`;
+      banner.className = "co-confirm-banner";
+      banner.hidden = false;
+    } else if (status === "preparing") {
+      banner.textContent = `👨‍🍳 Kitchen is preparing your order${timeSuffix}.`;
+      banner.className = "co-confirm-banner";
+      banner.hidden = false;
+    } else if (status === "ready") {
+      banner.textContent = `🍽️ Your order is READY${timeSuffix}!`;
+      banner.className = "co-confirm-banner";
+      banner.hidden = false;
+    } else if (status === "completed") {
+      banner.textContent = `✓ Order served / completed${timeSuffix}. Thank you!`;
+      banner.className = "co-confirm-banner";
+      banner.hidden = false;
+    } else if (status === "cancelled") {
+      banner.textContent = `✕ Order was cancelled${timeSuffix}. Please ask the staff.`;
+      banner.className = "co-confirm-banner cancelled";
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
+  }
+
+  const stepOrder = ["pending", "accepted", "preparing", "ready"];
+  const activeIdx = status === "completed" ? 3 : stepOrder.indexOf(status);
+  document.querySelectorAll("#co-progress .co-step").forEach((stepEl, idx) => {
+    stepEl.classList.toggle("done", status !== "cancelled" && idx <= activeIdx);
+  });
+
+  renderTimeInfo(status);
 }
 
 function startTracking(orderId) {
   clearInterval(state.trackTimer);
+  clearInterval(state.clockTimer);
   const poll = async () => {
     try {
       const res = await call(`/api/v1/public/orders/${encodeURIComponent(orderId)}`);
-      setStatus(res.order.status);
+      setStatus(res.order.status, res.order);
       if (FINAL_STATUSES.includes(res.order.status)) {
         clearInterval(state.trackTimer);
+        clearInterval(state.clockTimer);
         localStorage.removeItem(LAST_ORDER_KEY);
       }
     } catch {
       /* transient network error: keep polling */
     }
   };
-  state.trackTimer = setInterval(poll, 10000);
+  state.trackTimer = setInterval(poll, 4000);
+  state.clockTimer = setInterval(() => {
+    if ($("co-success-modal")?.open) renderTimeInfo(state.lastStatus || "pending");
+  }, 1000);
 }
 
 async function resumeTrackedOrder() {
@@ -368,12 +484,16 @@ function bindEvents() {
   });
   $("co-new-order").addEventListener("click", () => {
     clearInterval(state.trackTimer);
+    clearInterval(state.clockTimer);
     localStorage.removeItem(LAST_ORDER_KEY);
     $("co-success-modal").close();
   });
   $("co-success-modal").addEventListener("close", () => {
     /* keep polling in background only while a modal is open */
-    if (!$("co-success-modal").open) clearInterval(state.trackTimer);
+    if (!$("co-success-modal").open) {
+      clearInterval(state.trackTimer);
+      clearInterval(state.clockTimer);
+    }
   });
 }
 
