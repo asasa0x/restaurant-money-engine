@@ -152,11 +152,12 @@ def login():
     if not isinstance(payload, dict):
         return _bad_request("Request body must be a JSON object")
 
-    email = str(payload.get("email") or "").strip().lower()
+    raw_identifier = str(payload.get("email") or payload.get("username") or "").strip().lower()
+    email = raw_identifier if "@" in raw_identifier else (f"{raw_identifier}@kitchen.restaurant.local" if raw_identifier else "")
     password = str(payload.get("password") or "")
 
     if not email or not password:
-        return _bad_request("Email and password are required")
+        return _bad_request("Username/email and password are required")
 
     try:
         try:
