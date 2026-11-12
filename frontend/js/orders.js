@@ -43,6 +43,7 @@ export const orders = {
     document.getElementById("btn-download-qr")?.addEventListener("click", () => this.downloadQr());
     document.getElementById("btn-print-qr")?.addEventListener("click", () => this.printQr());
     document.getElementById("btn-print-bulk-qr")?.addEventListener("click", () => this.printBulkQr());
+    document.getElementById("btn-open-kitchen-board")?.addEventListener("click", () => this.openLedBoard("kitchen"));
     document.getElementById("btn-open-led-board")?.addEventListener("click", () => this.openLedBoard());
     document.getElementById("btn-refresh-orders")?.addEventListener("click", () => this.loadOrders(true));
     document.getElementById("orders-status-filter")?.addEventListener("change", (e) => {
@@ -319,13 +320,14 @@ export const orders = {
     img.onload = () => win.print();
   },
 
-  openLedBoard() {
+  openLedBoard(mode = "") {
     const restaurant = api.getRestaurant();
     if (!restaurant?.id) {
       showToast("Please sign in first.", "error");
       return;
     }
-    const url = `${window.location.origin}/led.html?r=${encodeURIComponent(restaurant.id)}`;
+    let url = `${window.location.origin}/led.html?r=${encodeURIComponent(restaurant.id)}`;
+    if (mode) url += `&mode=${encodeURIComponent(mode)}`;
     window.open(url, "_blank", "noopener");
   },
 

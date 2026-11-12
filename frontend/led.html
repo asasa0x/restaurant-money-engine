@@ -17,6 +17,7 @@
     </div>
     <div class="led-controls">
       <span id="led-clock" class="led-clock">--:--:--</span>
+      <button type="button" class="btn btn-secondary btn-sm" id="led-kitchen-auth-btn">👨‍🍳 Kitchen Access</button>
       <button type="button" class="btn btn-secondary btn-sm" id="led-mode-btn">Mode: Kitchen (Items)</button>
       <button type="button" class="btn btn-secondary btn-sm" id="led-sound-btn">🔔 Sound: ON</button>
       <button type="button" class="btn btn-primary btn-sm" id="led-fullscreen-btn">⛶ Fullscreen</button>
@@ -49,6 +50,30 @@
     </section>
   </main>
 
+  <!-- Kitchen Staff Sign-In Modal -->
+  <dialog id="led-auth-modal" class="app-modal co-modal">
+    <h2 class="co-modal-title">👨‍🍳 Kitchen Staff Access</h2>
+    <p class="co-muted" style="text-align: left; margin-bottom: 0.85rem;">
+      Sign in once on this kitchen screen to Accept, Mark Ready, and Complete orders.
+    </p>
+    <form id="led-auth-form">
+      <div class="form-group">
+        <label class="form-label" for="led-auth-email">Email Address</label>
+        <input type="email" class="form-input" id="led-auth-email" required autocomplete="email" placeholder="staff@restaurant.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="led-auth-password">Password</label>
+        <input type="password" class="form-input" id="led-auth-password" required minlength="6" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <p id="led-auth-error" class="co-form-error" role="alert" hidden></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" id="led-auth-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="led-auth-submit">Sign In</button>
+      </div>
+    </form>
+  </dialog>
+
   <script type="module" src="js/led.js"></script>
 </body>
 </html>
+

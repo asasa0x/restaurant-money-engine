@@ -5,6 +5,7 @@
 
 const params = new URLSearchParams(window.location.search);
 const restaurantId = (params.get("r") || "").trim();
+const initialMode = (params.get("mode") || "").trim().toLowerCase();
 
 const isLocalDev =
   (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") &&
@@ -20,6 +21,7 @@ const state = {
   firstLoad: true,
   showItems: true,
   soundEnabled: true,
+  token: localStorage.getItem("rme_auth_token") || "",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -60,6 +62,90 @@ function playChime(freq = 880) {
   } catch {
     /* ignore audio errors */
   }
+}
+
+function hasKitchenAccess() {
+  if (!state.token) return false;
+  try {
+    const rest = JSON.parse(localStorage.getItem("rme_auth_restaurant") || "null");
+    if (rest?.id && restaurantId && rest.id !== restaurantId) return false;
+  } catch {
+    /* ignore */
+  }
+  return true;
+}
+
+function updateKitchenAuthButton() {
+  const btn = $("led-kitchen-auth-btn");
+  if (!btn) return;
+  if (hasKitchenAccess()) {
+    btn.textContent = "👨‍🍳 Kitchen Active (Sign Out)";
+    btn.className = "btn btn-primary btn-sm";
+  } else {
+    btn.textContent = "👨‍🍳 Kitchen Sign In";
+    btn.className = "btn btn-secondary btn-sm";
+  }
+}
+
+async function setOrderStatus(order, status) {
+  if (!hasKitchenAccess()) {
+    $("led-auth-modal")?.showModal();
+    return;
+  }
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/orders/${encodeURIComponent(order.id)}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${state.token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (response.status === 401) {
+      state.token = "";
+      localStorage.removeItem("rme_auth_token");
+      updateKitchenAuthButton();
+      renderBoard();
+      $("led-auth-modal")?.showModal();
+      return;
+    }
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    await fetchBoard();
+  } catch (err) {
+    $("led-sync-status").textContent = `Status update failed: ${err.message}`;
+  }
+}
+
+function buildKitchenActions(order) {
+  if (!hasKitchenAccess()) return null;
+  const wrap = node("div", "led-actions");
+  const addBtn = (label, cls, nextStatus, confirmMsg = null) => {
+    const btn = node("button", `btn btn-xs ${cls}`, label);
+    btn.type = "button";
+    btn.addEventListener("click", () => {
+      if (confirmMsg && !confirm(confirmMsg)) return;
+      btn.disabled = true;
+      setOrderStatus(order, nextStatus);
+    });
+    wrap.appendChild(btn);
+  };
+
+  if (order.status === "pending") {
+    addBtn("✓ Accept", "btn-primary", "accepted");
+    addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
+  } else if (order.status === "accepted") {
+    addBtn("👨‍🍳 Preparing", "btn-secondary", "preparing");
+    addBtn("✅ Mark Ready", "btn-primary", "ready");
+    addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
+  } else if (order.status === "preparing") {
+    addBtn("✅ Mark Ready", "btn-primary", "ready");
+    addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
+  } else if (order.status === "ready") {
+    addBtn("✔ Mark Complete", "btn-primary", "completed");
+  }
+  return wrap;
 }
 
 function renderColumn(listId, countId, items) {
@@ -104,6 +190,9 @@ function renderColumn(listId, countId, items) {
     if (state.showItems && order.notes) {
       card.appendChild(node("div", "led-notes", `📝 ${order.notes}`));
     }
+
+    const actions = buildKitchenActions(order);
+    if (actions) card.appendChild(actions);
 
     list.appendChild(card);
   });
@@ -184,11 +273,68 @@ function bindControls() {
       document.exitFullscreen?.().catch(() => {});
     }
   });
+
+  $("led-kitchen-auth-btn")?.addEventListener("click", () => {
+    if (hasKitchenAccess()) {
+      state.token = "";
+      localStorage.removeItem("rme_auth_token");
+      updateKitchenAuthButton();
+      renderBoard();
+    } else {
+      $("led-auth-error").hidden = true;
+      $("led-auth-modal")?.showModal();
+    }
+  });
+
+  $("led-auth-cancel")?.addEventListener("click", () => $("led-auth-modal")?.close());
+
+  $("led-auth-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = $("led-auth-error");
+    const submitBtn = $("led-auth-submit");
+    errEl.hidden = true;
+    submitBtn.disabled = true;
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          email: ($("led-auth-email")?.value || "").trim(),
+          password: $("led-auth-password")?.value || "",
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.access_token) {
+        throw new Error(data.error || "Sign in failed");
+      }
+      if (restaurantId && data.restaurant?.id && data.restaurant.id !== restaurantId) {
+        throw new Error("This account belongs to a different restaurant.");
+      }
+      state.token = data.access_token;
+      localStorage.setItem("rme_auth_token", data.access_token);
+      if (data.user) localStorage.setItem("rme_auth_user", JSON.stringify(data.user));
+      if (data.restaurant) localStorage.setItem("rme_auth_restaurant", JSON.stringify(data.restaurant));
+      $("led-auth-form").reset();
+      $("led-auth-modal")?.close();
+      updateKitchenAuthButton();
+      renderBoard();
+    } catch (err) {
+      errEl.textContent = err.message || "Sign in failed";
+      errEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 bindControls();
+updateKitchenAuthButton();
+if (initialMode === "kitchen" && !hasKitchenAccess()) {
+  $("led-auth-modal")?.showModal();
+}
 updateClock();
 setInterval(updateClock, 1000);
 setInterval(() => { if (!state.firstLoad) renderBoard(); }, 1000);
 fetchBoard();
 setInterval(fetchBoard, POLL_MS);
+

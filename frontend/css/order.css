@@ -191,3 +191,6 @@
 .led-items li { padding: 0.2rem 0; }
 .led-qty { color: var(--emerald); font-weight: 800; }
 .led-notes { margin-top: 0.45rem; font-size: 0.85rem; color: var(--amber); font-weight: 600; }
+
+.led-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border-subtle); }
+.led-actions .btn { font-size: 0.82rem; padding: 0.42rem 0.75rem; }
