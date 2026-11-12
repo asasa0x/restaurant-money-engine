@@ -57,13 +57,67 @@ export const orders = {
       this.state.filter = e.target.value || "ALL";
       this.render();
     });
+    document.getElementById("payment-settings-form")?.addEventListener("submit", (e) => this.savePaymentSettings(e));
   },
 
   startPolling() {
     clearInterval(this.state.timer);
+    this.loadPaymentSettings();
     this.state.timer = setInterval(() => {
       if (api.isAuthenticated() && !document.hidden) this.loadOrders(false);
     }, POLL_MS);
+  },
+
+  async loadPaymentSettings() {
+    if (!api.isAuthenticated()) return;
+    try {
+      const res = await api.get("/api/v1/orders/payment-settings");
+      const d = res?.data || {};
+      const map = {
+        "ps-bank-name": d.bank_name,
+        "ps-account-title": d.account_title,
+        "ps-account-number": d.account_number,
+        "ps-iban": d.iban,
+        "ps-wallet-provider": d.wallet_provider,
+        "ps-wallet-number": d.wallet_number,
+        "ps-wallet-title": d.wallet_title,
+        "ps-instructions": d.instructions,
+      };
+      Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || "";
+      });
+    } catch {
+      /* ignore if not yet configured */
+    }
+  },
+
+  async savePaymentSettings(e) {
+    e.preventDefault();
+    if (!api.isAuthenticated()) {
+      showToast("Please sign in first.", "error");
+      return;
+    }
+    const btn = document.getElementById("btn-save-payment-settings");
+    if (btn) btn.disabled = true;
+    const val = (id) => (document.getElementById(id)?.value || "").trim();
+    try {
+      await api.put("/api/v1/orders/payment-settings", {
+        bank_name: val("ps-bank-name"),
+        account_title: val("ps-account-title"),
+        account_number: val("ps-account-number"),
+        iban: val("ps-iban"),
+        wallet_provider: val("ps-wallet-provider"),
+        wallet_number: val("ps-wallet-number"),
+        wallet_title: val("ps-wallet-title"),
+        instructions: val("ps-instructions"),
+      });
+      showToast("Payment account details saved!", "success");
+    } catch (err) {
+      showToast(err.message || "Could not save payment details", "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   },
 
   // ----------------------------------------------------------------- orders
@@ -146,7 +200,8 @@ export const orders = {
 
       const time = order.created_at ? new Date(order.created_at) : null;
       const metaBits = [];
-      metaBits.push(PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash);
+      const payLabel = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+      metaBits.push(order.payment_ref ? `${payLabel} (Ref: ${order.payment_ref})` : payLabel);
       if (time && !isNaN(time)) metaBits.push(time.toLocaleString());
       if (order.customer_phone) metaBits.push(`📞 ${order.customer_phone}`);
       if (metaBits.length) card.appendChild(this.node("div", "order-meta", metaBits.join("  ·  ")));

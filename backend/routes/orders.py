@@ -75,10 +75,45 @@ def _split_name(raw_name):
     return raw.strip(), ""
 
 
-def _pack_payment_and_notes(payment_method, notes):
+PAYMENT_DETAIL_FIELDS = (
+    ("bank_name", 100),
+    ("account_title", 120),
+    ("account_number", 60),
+    ("iban", 60),
+    ("wallet_provider", 60),
+    ("wallet_number", 40),
+    ("wallet_title", 120),
+    ("instructions", 240),
+)
+
+
+def _clean_payment_ref(value):
+    cleaned = _clean_text(value, "payment_ref", 60)
+    if not cleaned:
+        return None
+    cleaned = cleaned.replace("[", "").replace("]", "").replace("|", "").strip()
+    return cleaned or None
+
+
+def _clean_payment_details(raw):
+    if not isinstance(raw, dict):
+        return {}
+    out = {}
+    for key, max_len in PAYMENT_DETAIL_FIELDS:
+        val = raw.get(key)
+        if isinstance(val, str):
+            val = " ".join(val.split())[:max_len]
+            if val:
+                out[key] = val
+    return out
+
+
+def _pack_payment_and_notes(payment_method, notes, payment_ref=None):
     method = payment_method if payment_method in PAYMENT_METHODS else "cash"
     clean_notes = (notes or "").strip()
-    prefix = f"{PAYMENT_PREFIX}{method}]"
+    ref = (payment_ref or "").replace("[", "").replace("]", "").replace("|", "").strip()[:60]
+    tag = f"{method}|Ref:{ref}" if ref else method
+    prefix = f"{PAYMENT_PREFIX}{tag}]"
     if not clean_notes:
         return prefix
     return f"{prefix} {clean_notes}"[:500]
@@ -88,11 +123,17 @@ def _unpack_payment_and_notes(raw_notes):
     text = str(raw_notes or "").strip()
     if text.startswith(PAYMENT_PREFIX) and "]" in text:
         end = text.index("]")
-        method = text[len(PAYMENT_PREFIX):end].strip()
+        tag = text[len(PAYMENT_PREFIX):end].strip()
         clean_notes = text[end + 1:].strip() or None
-        if method in PAYMENT_METHODS:
-            return method, clean_notes
-    return "cash", (text or None)
+        method_part = tag
+        payment_ref = None
+        if "|Ref:" in tag:
+            method_part, ref_part = tag.split("|Ref:", 1)
+            method_part = method_part.strip()
+            payment_ref = ref_part.strip() or None
+        if method_part in PAYMENT_METHODS:
+            return method_part, payment_ref, clean_notes
+    return "cash", None, (text or None)
 
 
 def _order_code(order_id):
@@ -115,13 +156,25 @@ def _clean_text(value, field, max_length, required=False):
 
 
 def _fetch_restaurant(restaurant_id):
-    res = (
-        supabase.table("restaurants")
-        .select("id, name, currency")
-        .eq("id", restaurant_id)
-        .limit(1)
-        .execute()
-    )
+    try:
+        res = (
+            supabase.table("restaurants")
+            .select("id, name, currency, payment_details")
+            .eq("id", restaurant_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as exc:
+        if "payment_details" in str(exc) or "42703" in str(exc):
+            res = (
+                supabase.table("restaurants")
+                .select("id, name, currency")
+                .eq("id", restaurant_id)
+                .limit(1)
+                .execute()
+            )
+        else:
+            raise
     rows = res.data if res and isinstance(res.data, list) else []
     return rows[0] if rows else None
 
@@ -171,6 +224,7 @@ def public_menu(restaurant_id):
             "id": restaurant["id"],
             "name": restaurant.get("name"),
             "currency": restaurant.get("currency") or "USD",
+            "payment_details": _clean_payment_details(restaurant.get("payment_details")),
         },
         "count": len(items),
         "items": items,
@@ -207,6 +261,11 @@ def place_order(restaurant_id):
         )
     else:
         payment_method = raw_payment.strip().lower()
+
+    try:
+        payment_ref = _clean_payment_ref(payload.get("payment_ref"))
+    except ValueError as exc:
+        return _error(str(exc), "BAD_REQUEST", 400)
 
     if not table_number and not customer_phone:
         return _error("Provide a table number or a phone number so the restaurant can reach you",
@@ -287,7 +346,7 @@ def place_order(restaurant_id):
             "table_number": table_number,
             "customer_name": customer_name,
             "customer_phone": customer_phone,
-            "notes": _pack_payment_and_notes(payment_method, notes),
+            "notes": _pack_payment_and_notes(payment_method, notes, payment_ref),
             "status": "pending",
             "subtotal": total,
             "total": total,
@@ -322,6 +381,7 @@ def place_order(restaurant_id):
             "restaurant_name": restaurant.get("name"),
             "table_number": table_number,
             "payment_method": payment_method,
+            "payment_ref": payment_ref,
             "created_at": order_row.get("created_at"),
             "updated_at": order_row.get("updated_at"),
             "items": [
@@ -361,7 +421,7 @@ def track_order(order_id):
     except Exception as exc:
         return database_error_response(exc, "order tracking")
 
-    payment_method, _clean_notes = _unpack_payment_and_notes(order.get("notes"))
+    payment_method, payment_ref, _clean_notes = _unpack_payment_and_notes(order.get("notes"))
 
     return jsonify({
         "success": True,
@@ -374,6 +434,7 @@ def track_order(order_id):
             "restaurant_name": (restaurant or {}).get("name"),
             "table_number": order.get("table_number"),
             "payment_method": payment_method,
+            "payment_ref": payment_ref,
             "created_at": order.get("created_at"),
             "updated_at": order.get("updated_at"),
             "items": [
@@ -433,13 +494,14 @@ def public_led_board(restaurant_id):
 
     board_orders = []
     for o in raw_orders:
-        payment_method, clean_notes = _unpack_payment_and_notes(o.get("notes"))
+        payment_method, payment_ref, clean_notes = _unpack_payment_and_notes(o.get("notes"))
         board_orders.append({
             "id": o["id"],
             "code": _order_code(o["id"]),
             "table_number": o.get("table_number"),
             "status": o.get("status"),
             "payment_method": payment_method,
+            "payment_ref": payment_ref,
             "notes": clean_notes,
             "created_at": o.get("created_at"),
             "updated_at": o.get("updated_at"),
@@ -497,9 +559,10 @@ def list_orders():
         return database_error_response(exc, "orders list")
 
     for order in orders:
-        payment_method, clean_notes = _unpack_payment_and_notes(order.get("notes"))
+        payment_method, payment_ref, clean_notes = _unpack_payment_and_notes(order.get("notes"))
         order["code"] = _order_code(order["id"])
         order["payment_method"] = payment_method
+        order["payment_ref"] = payment_ref
         order["notes"] = clean_notes
         order["items"] = items_by_order.get(order["id"], [])
 
@@ -542,4 +605,54 @@ def update_order_status(order_id):
     order = res.data[0]
     order["code"] = _order_code(order["id"])
     return jsonify({"success": True, "data": order}), 200
+
+
+@orders_bp.route("/payment-settings", methods=["GET"])
+@require_auth
+def get_payment_settings():
+    restaurant_id = current_restaurant_id()
+    try:
+        restaurant = _fetch_restaurant(restaurant_id)
+    except Exception as exc:
+        return database_error_response(exc, "payment settings lookup")
+    if not restaurant:
+        return _error("Restaurant not found", "NOT_FOUND", 404)
+    return jsonify({
+        "success": True,
+        "data": _clean_payment_details(restaurant.get("payment_details")),
+    }), 200
+
+
+@orders_bp.route("/payment-settings", methods=["PUT"])
+@require_auth
+def update_payment_settings():
+    restaurant_id = current_restaurant_id()
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return _error("JSON body is required", "BAD_REQUEST", 400)
+
+    details = _clean_payment_details(payload)
+    try:
+        res = (
+            supabase.table("restaurants")
+            .update({"payment_details": details})
+            .eq("id", restaurant_id)
+            .execute()
+        )
+    except Exception as exc:
+        if "payment_details" in str(exc) or "42703" in str(exc):
+            return _error(
+                "Run database migration 005_payment_details.sql in Supabase SQL Editor first.",
+                "MIGRATION_REQUIRED",
+                503,
+            )
+        return database_error_response(exc, "payment settings update")
+
+    if not res or not res.data:
+        return _error("Restaurant not found", "NOT_FOUND", 404)
+
+    return jsonify({
+        "success": True,
+        "data": _clean_payment_details(res.data[0].get("payment_details")),
+    }), 200
 

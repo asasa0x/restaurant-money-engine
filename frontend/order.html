@@ -58,6 +58,13 @@
           <option value="bank_transfer">🏦 Bank Transfer</option>
         </select>
       </div>
+      <div id="co-payment-info" class="co-payment-info" hidden>
+        <div id="co-payment-details"></div>
+        <div class="form-group" style="margin-top: 0.6rem; margin-bottom: 0;">
+          <label class="form-label" for="co-payment-ref">Transaction ID / Reference (optional)</label>
+          <input class="form-input" id="co-payment-ref" maxlength="60" placeholder="e.g. TRX-987654 or last 4 digits">
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label" for="co-notes">Special Instructions</label>
         <textarea class="form-input" id="co-notes" rows="2" maxlength="500" placeholder="e.g. less spicy, no onion"></textarea>

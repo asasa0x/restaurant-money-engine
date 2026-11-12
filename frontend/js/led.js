@@ -179,7 +179,8 @@ function renderColumn(listId, countId, items) {
     const timeRow = node("div", "led-time-row");
     const placed = formatTime(order.created_at);
     const elapsed = formatElapsed(order.created_at);
-    const payText = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    const payBase = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    const payText = order.payment_ref ? `${payBase} (Ref: ${order.payment_ref})` : payBase;
     timeRow.appendChild(node("span", "", `${payText}${placed ? ` · ${placed}` : ""}`));
     timeRow.appendChild(node("span", "led-elapsed", elapsed ? `⏱ ${elapsed}` : ""));
     card.appendChild(timeRow);

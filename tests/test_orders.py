@@ -451,6 +451,51 @@ class TestPaymentMethod(OrderingTestBase):
             self.assertEqual(owner_orders[placed["id"]]["payment_method"], method)
             self.assertEqual(owner_orders[placed["id"]]["notes"], "Extra spicy")
 
+    def test_payment_ref_and_payment_settings_roundtrip(self):
+        # Owner saves bank & wallet details
+        res_put = self.client.put(
+            "/api/v1/orders/payment-settings",
+            headers=self.owner_headers(REST_A),
+            json={
+                "bank_name": "Meezan Bank",
+                "account_title": "Pizza Club",
+                "account_number": "0102030405",
+                "wallet_provider": "Easypaisa",
+                "wallet_number": "03001234567",
+            },
+        )
+        self.assertEqual(res_put.status_code, 200)
+        self.assertEqual(res_put.get_json()["data"]["bank_name"], "Meezan Bank")
+
+        # Public menu returns those payment_details
+        res_menu = self.client.get(f"/api/v1/public/restaurants/{REST_A}/menu")
+        self.assertEqual(res_menu.status_code, 200)
+        pd = res_menu.get_json()["restaurant"]["payment_details"]
+        self.assertEqual(pd["bank_name"], "Meezan Bank")
+        self.assertEqual(pd["wallet_number"], "03001234567")
+
+        # Customer places bank_transfer order with transaction reference
+        res_place = self.place(body=self.order_body(
+            table_number="14",
+            payment_method="bank_transfer",
+            payment_ref="TRX-998877",
+            notes="No olives",
+        ))
+        self.assertEqual(res_place.status_code, 201)
+        placed = res_place.get_json()["order"]
+        self.assertEqual(placed["payment_ref"], "TRX-998877")
+
+        tracked = self.client.get(f"/api/v1/public/orders/{placed['id']}").get_json()["order"]
+        self.assertEqual(tracked["payment_ref"], "TRX-998877")
+
+        led = {o["id"]: o for o in self.client.get(f"/api/v1/public/restaurants/{REST_A}/led").get_json()["orders"]}
+        self.assertEqual(led[placed["id"]]["payment_ref"], "TRX-998877")
+        self.assertEqual(led[placed["id"]]["notes"], "No olives")
+
+        owner_orders = {o["id"]: o for o in self.client.get("/api/v1/orders", headers=self.owner_headers(REST_A)).get_json()["data"]}
+        self.assertEqual(owner_orders[placed["id"]]["payment_ref"], "TRX-998877")
+        self.assertEqual(owner_orders[placed["id"]]["notes"], "No olives")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -218,12 +218,75 @@ function showFormError(message) {
   box.hidden = !message;
 }
 
+function addCopyRow(container, label, value) {
+  const row = el("div", "co-payment-row");
+  row.appendChild(el("span", "", label));
+  const right = el("div");
+  right.style.display = "flex";
+  right.style.alignItems = "center";
+  right.style.gap = "0.4rem";
+  right.appendChild(el("strong", "", value));
+  const btn = el("button", "co-copy-btn", "Copy");
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(value).catch(() => {});
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+  });
+  right.appendChild(btn);
+  row.appendChild(right);
+  container.appendChild(row);
+}
+
+function renderPaymentInfo() {
+  const box = $("co-payment-info");
+  const detailsEl = $("co-payment-details");
+  if (!box || !detailsEl) return;
+  const method = $("co-payment")?.value || "cash";
+  if (method !== "bank_transfer" && method !== "easypaisa_jazzcash") {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  detailsEl.replaceChildren();
+  const pd = state.restaurant?.payment_details || {};
+  const { total } = cartTotals();
+
+  detailsEl.appendChild(el("div", "co-payment-info-title",
+    method === "bank_transfer"
+      ? `Transfer ${money(total)} to Bank Account:`
+      : `Send ${money(total)} via Mobile Wallet:`
+  ));
+
+  let hasDetails = false;
+  if (method === "bank_transfer") {
+    if (pd.bank_name) { addCopyRow(detailsEl, "Bank", pd.bank_name); hasDetails = true; }
+    if (pd.account_title) { addCopyRow(detailsEl, "Title", pd.account_title); hasDetails = true; }
+    if (pd.account_number) { addCopyRow(detailsEl, "Account #", pd.account_number); hasDetails = true; }
+    if (pd.iban) { addCopyRow(detailsEl, "IBAN", pd.iban); hasDetails = true; }
+  } else {
+    if (pd.wallet_provider) { addCopyRow(detailsEl, "Wallet", pd.wallet_provider); hasDetails = true; }
+    if (pd.wallet_title) { addCopyRow(detailsEl, "Title", pd.wallet_title); hasDetails = true; }
+    if (pd.wallet_number) { addCopyRow(detailsEl, "Number", pd.wallet_number); hasDetails = true; }
+  }
+
+  if (!hasDetails) {
+    detailsEl.appendChild(el("p", "co-payment-note",
+      "Account details are not configured yet — please ask the cashier/waiter for the account number before transferring."
+    ));
+  }
+  if (pd.instructions) {
+    detailsEl.appendChild(el("p", "co-payment-note", pd.instructions));
+  }
+}
+
 function openCart() {
   if (cartTotals().count === 0) return;
   showFormError("");
   $("co-table").value = $("co-table").value || tableFromQr;
   $("co-name").value = $("co-name").value || localStorage.getItem(NAME_KEY) || "";
   renderCartModal();
+  renderPaymentInfo();
   $("co-cart-modal").showModal();
 }
 
@@ -235,6 +298,7 @@ async function placeOrder(event) {
   const table = $("co-table").value.trim();
   const phone = $("co-phone").value.trim();
   const payment = $("co-payment")?.value || "cash";
+  const paymentRef = $("co-payment-ref")?.value.trim() || "";
   const notes = $("co-notes").value.trim();
   const items = Object.entries(state.cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
 
@@ -253,6 +317,7 @@ async function placeOrder(event) {
         table_number: table || null,
         customer_phone: phone || null,
         payment_method: payment,
+        payment_ref: paymentRef || null,
         notes: notes || null,
         items,
       }),
@@ -263,6 +328,7 @@ async function placeOrder(event) {
     saveCart();
     $("co-cart-modal").close();
     $("co-notes").value = "";
+    if ($("co-payment-ref")) $("co-payment-ref").value = "";
     renderMenu();
     renderCartBar();
     showSuccess(res.order);
@@ -364,7 +430,8 @@ function showSuccess(order) {
   }
   const payBadge = $("co-success-payment");
   if (payBadge) {
-    payBadge.textContent = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    const label = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    payBadge.textContent = order.payment_ref ? `${label} (Ref: ${order.payment_ref})` : label;
     payBadge.hidden = false;
   }
   const lines = $("co-success-lines");
@@ -501,6 +568,7 @@ async function loadMenu(showLoading = true) {
 function bindEvents() {
   $("co-cart-bar").addEventListener("click", openCart);
   $("co-cart-close").addEventListener("click", () => $("co-cart-modal").close());
+  $("co-payment")?.addEventListener("change", renderPaymentInfo);
   $("co-checkout-form").addEventListener("submit", placeOrder);
   $("co-search").addEventListener("input", (e) => {
     state.search = e.target.value || "";

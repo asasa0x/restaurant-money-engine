@@ -196,3 +196,51 @@
 .led-actions .btn { font-size: 0.82rem; padding: 0.42rem 0.75rem; }
 
 .co-payment-badge { background: var(--indigo-subtle); color: var(--indigo); border: 1px solid var(--indigo); border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.78rem; font-weight: 700; }
+
+.co-payment-info {
+  background: var(--bg-soft, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.88rem;
+}
+
+.co-payment-info-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--text, #0f172a);
+}
+
+.co-payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  flex-wrap: wrap;
+}
+
+.co-payment-row span {
+  color: var(--muted, #64748b);
+}
+
+.co-payment-row strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  word-break: break-all;
+}
+
+.co-copy-btn {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border, #cbd5e1);
+  background: #fff;
+  cursor: pointer;
+}
+
+.co-payment-note {
+  margin-top: 0.35rem;
+  color: var(--muted, #475569);
+  font-size: 0.82rem;
+}
