@@ -50,6 +50,15 @@
         <input class="form-input" id="co-phone" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="03xx-xxxxxxx">
       </div>
       <div class="form-group">
+        <label class="form-label" for="co-payment">Payment Method *</label>
+        <select class="form-select" id="co-payment" required>
+          <option value="cash">💵 Cash (Counter / Table)</option>
+          <option value="card">💳 Card (POS Machine at Table)</option>
+          <option value="easypaisa_jazzcash">📱 JazzCash / Easypaisa</option>
+          <option value="bank_transfer">🏦 Bank Transfer</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label" for="co-notes">Special Instructions</label>
         <textarea class="form-input" id="co-notes" rows="2" maxlength="500" placeholder="e.g. less spicy, no onion"></textarea>
       </div>
@@ -69,6 +78,7 @@
     <p class="co-order-code" id="co-success-code">--------</p>
     <p class="co-status-line">
       <span id="co-success-table" class="co-table-badge" hidden></span>
+      <span id="co-success-payment" class="co-payment-badge" hidden></span>
       <strong id="co-success-status" class="co-status-pill">Pending</strong>
     </p>
     <div id="co-confirm-banner" class="co-confirm-banner" hidden></div>

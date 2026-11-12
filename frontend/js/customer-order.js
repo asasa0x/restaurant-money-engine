@@ -234,6 +234,7 @@ async function placeOrder(event) {
   const name = $("co-name").value.trim();
   const table = $("co-table").value.trim();
   const phone = $("co-phone").value.trim();
+  const payment = $("co-payment")?.value || "cash";
   const notes = $("co-notes").value.trim();
   const items = Object.entries(state.cart).map(([menu_item_id, quantity]) => ({ menu_item_id, quantity }));
 
@@ -251,6 +252,7 @@ async function placeOrder(event) {
         customer_name: name,
         table_number: table || null,
         customer_phone: phone || null,
+        payment_method: payment,
         notes: notes || null,
         items,
       }),
@@ -336,6 +338,13 @@ function notifyCustomerChime() {
   }
 }
 
+const PAYMENT_LABELS = {
+  cash: "💵 Cash",
+  card: "💳 Card",
+  easypaisa_jazzcash: "📱 JazzCash / Easypaisa",
+  bank_transfer: "🏦 Bank Transfer",
+};
+
 function showSuccess(order) {
   state.lastStatus = order.status;
   state.orderCreatedAt = order.created_at || new Date().toISOString();
@@ -352,6 +361,11 @@ function showSuccess(order) {
       tableBadge.textContent = "Takeaway";
       tableBadge.hidden = false;
     }
+  }
+  const payBadge = $("co-success-payment");
+  if (payBadge) {
+    payBadge.textContent = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    payBadge.hidden = false;
   }
   const lines = $("co-success-lines");
   lines.replaceChildren();

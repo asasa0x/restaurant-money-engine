@@ -25,6 +25,8 @@ orders_bp = Blueprint("orders", __name__, url_prefix="/api/v1/orders")
 
 DESC_SEPARATOR = " :: "
 ORDER_STATUSES = ("pending", "accepted", "preparing", "ready", "completed", "cancelled")
+PAYMENT_METHODS = ("cash", "card", "easypaisa_jazzcash", "bank_transfer")
+PAYMENT_PREFIX = "[Pay:"
 MAX_LINES = 50
 MAX_QTY = 50
 MAX_LIST_LIMIT = 200
@@ -71,6 +73,26 @@ def _split_name(raw_name):
         name, desc = raw.split(DESC_SEPARATOR, 1)
         return name.strip(), desc.strip()
     return raw.strip(), ""
+
+
+def _pack_payment_and_notes(payment_method, notes):
+    method = payment_method if payment_method in PAYMENT_METHODS else "cash"
+    clean_notes = (notes or "").strip()
+    prefix = f"{PAYMENT_PREFIX}{method}]"
+    if not clean_notes:
+        return prefix
+    return f"{prefix} {clean_notes}"[:500]
+
+
+def _unpack_payment_and_notes(raw_notes):
+    text = str(raw_notes or "").strip()
+    if text.startswith(PAYMENT_PREFIX) and "]" in text:
+        end = text.index("]")
+        method = text[len(PAYMENT_PREFIX):end].strip()
+        clean_notes = text[end + 1:].strip() or None
+        if method in PAYMENT_METHODS:
+            return method, clean_notes
+    return "cash", (text or None)
 
 
 def _order_code(order_id):
@@ -170,9 +192,21 @@ def place_order(restaurant_id):
         customer_name = _clean_text(payload.get("customer_name"), "Your name", 100, required=True)
         table_number = _clean_text(payload.get("table_number"), "Table number", 30)
         customer_phone = _clean_text(payload.get("customer_phone"), "Phone number", 30)
-        notes = _clean_text(payload.get("notes"), "Notes", 500)
+        notes = _clean_text(payload.get("notes"), "Notes", 450)
     except ValueError as exc:
         return _error(str(exc), "BAD_REQUEST", 400)
+
+    raw_payment = payload.get("payment_method")
+    if raw_payment is None or raw_payment == "":
+        payment_method = "cash"
+    elif not isinstance(raw_payment, str) or raw_payment.strip().lower() not in PAYMENT_METHODS:
+        return _error(
+            f"payment_method must be one of: {', '.join(PAYMENT_METHODS)}",
+            "BAD_REQUEST",
+            400,
+        )
+    else:
+        payment_method = raw_payment.strip().lower()
 
     if not table_number and not customer_phone:
         return _error("Provide a table number or a phone number so the restaurant can reach you",
@@ -253,7 +287,7 @@ def place_order(restaurant_id):
             "table_number": table_number,
             "customer_name": customer_name,
             "customer_phone": customer_phone,
-            "notes": notes,
+            "notes": _pack_payment_and_notes(payment_method, notes),
             "status": "pending",
             "subtotal": total,
             "total": total,
@@ -287,6 +321,7 @@ def place_order(restaurant_id):
             "currency": restaurant.get("currency") or "USD",
             "restaurant_name": restaurant.get("name"),
             "table_number": table_number,
+            "payment_method": payment_method,
             "created_at": order_row.get("created_at"),
             "updated_at": order_row.get("updated_at"),
             "items": [
@@ -307,7 +342,7 @@ def track_order(order_id):
     try:
         order_res = (
             supabase.table("orders")
-            .select("id, restaurant_id, status, total, table_number, created_at, updated_at")
+            .select("id, restaurant_id, status, total, table_number, notes, created_at, updated_at")
             .eq("id", oid)
             .limit(1)
             .execute()
@@ -326,6 +361,8 @@ def track_order(order_id):
     except Exception as exc:
         return database_error_response(exc, "order tracking")
 
+    payment_method, _clean_notes = _unpack_payment_and_notes(order.get("notes"))
+
     return jsonify({
         "success": True,
         "order": {
@@ -336,6 +373,7 @@ def track_order(order_id):
             "currency": (restaurant or {}).get("currency") or "USD",
             "restaurant_name": (restaurant or {}).get("name"),
             "table_number": order.get("table_number"),
+            "payment_method": payment_method,
             "created_at": order.get("created_at"),
             "updated_at": order.get("updated_at"),
             "items": [
@@ -395,12 +433,14 @@ def public_led_board(restaurant_id):
 
     board_orders = []
     for o in raw_orders:
+        payment_method, clean_notes = _unpack_payment_and_notes(o.get("notes"))
         board_orders.append({
             "id": o["id"],
             "code": _order_code(o["id"]),
             "table_number": o.get("table_number"),
             "status": o.get("status"),
-            "notes": o.get("notes"),
+            "payment_method": payment_method,
+            "notes": clean_notes,
             "created_at": o.get("created_at"),
             "updated_at": o.get("updated_at"),
             "items": items_by_order.get(o["id"], []),
@@ -457,7 +497,10 @@ def list_orders():
         return database_error_response(exc, "orders list")
 
     for order in orders:
+        payment_method, clean_notes = _unpack_payment_and_notes(order.get("notes"))
         order["code"] = _order_code(order["id"])
+        order["payment_method"] = payment_method
+        order["notes"] = clean_notes
         order["items"] = items_by_order.get(order["id"], [])
 
     return jsonify({

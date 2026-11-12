@@ -12,6 +12,13 @@ const isLocalDev =
   window.location.port !== "5000";
 const API_BASE = isLocalDev ? "http://127.0.0.1:5000" : "";
 
+const PAYMENT_LABELS = {
+  cash: "💵 Cash",
+  card: "💳 Card",
+  easypaisa_jazzcash: "📱 JazzCash/Easypaisa",
+  bank_transfer: "🏦 Bank",
+};
+
 const POLL_MS = 3000;
 
 const state = {
@@ -172,7 +179,8 @@ function renderColumn(listId, countId, items) {
     const timeRow = node("div", "led-time-row");
     const placed = formatTime(order.created_at);
     const elapsed = formatElapsed(order.created_at);
-    timeRow.appendChild(node("span", "", placed ? `Placed ${placed}` : ""));
+    const payText = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
+    timeRow.appendChild(node("span", "", `${payText}${placed ? ` · ${placed}` : ""}`));
     timeRow.appendChild(node("span", "led-elapsed", elapsed ? `⏱ ${elapsed}` : ""));
     card.appendChild(timeRow);
 

@@ -354,7 +354,7 @@ class TestCustomerPageStatic(unittest.TestCase):
         frontend = Path(__file__).resolve().parent.parent / "frontend"
         html = (frontend / "order.html").read_text(encoding="utf-8")
         js = (frontend / "js" / "customer-order.js").read_text(encoding="utf-8")
-        for element_id in ("co-menu", "co-cart-bar", "co-cart-modal", "co-checkout-form", "co-success-modal", "co-success-table"):
+        for element_id in ("co-menu", "co-cart-bar", "co-cart-modal", "co-checkout-form", "co-payment", "co-success-modal", "co-success-table", "co-success-payment"):
             self.assertIn(f'id="{element_id}"', html)
         self.assertIn("customer-order.js", html)
         # client sends only ids + quantities; the server prices the order
@@ -417,6 +417,39 @@ class TestPublicLedBoard(OrderingTestBase):
     def test_led_unknown_restaurant_is_404(self):
         self.assertEqual(self.client.get("/api/v1/public/restaurants/bad-id/led").status_code, 404)
         self.assertEqual(self.client.get(f"/api/v1/public/restaurants/{uuid.uuid4()}/led").status_code, 404)
+
+
+class TestPaymentMethod(OrderingTestBase):
+    def test_payment_method_roundtrip_and_invalid_rejected(self):
+        bad = self.place(body=self.order_body(payment_method="crypto"))
+        self.assertEqual(bad.status_code, 400)
+
+        for method in ("easypaisa_jazzcash", "card", "bank_transfer"):
+            res_place = self.place(body=self.order_body(
+                table_number="21",
+                payment_method=method,
+                notes="Extra spicy",
+            ))
+            self.assertEqual(res_place.status_code, 201)
+            placed = res_place.get_json()["order"]
+            self.assertEqual(placed["payment_method"], method)
+
+            res_track = self.client.get(f"/api/v1/public/orders/{placed['id']}")
+            self.assertEqual(res_track.status_code, 200)
+            tracked = res_track.get_json()["order"]
+            self.assertEqual(tracked["payment_method"], method)
+
+            res_led = self.client.get(f"/api/v1/public/restaurants/{REST_A}/led")
+            self.assertEqual(res_led.status_code, 200)
+            led_orders = {o["id"]: o for o in res_led.get_json()["orders"]}
+            self.assertEqual(led_orders[placed["id"]]["payment_method"], method)
+            self.assertEqual(led_orders[placed["id"]]["notes"], "Extra spicy")
+
+            res_owner = self.client.get("/api/v1/orders", headers=self.owner_headers(REST_A))
+            self.assertEqual(res_owner.status_code, 200)
+            owner_orders = {o["id"]: o for o in res_owner.get_json()["data"]}
+            self.assertEqual(owner_orders[placed["id"]]["payment_method"], method)
+            self.assertEqual(owner_orders[placed["id"]]["notes"], "Extra spicy")
 
 
 if __name__ == "__main__":

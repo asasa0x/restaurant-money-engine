@@ -194,3 +194,5 @@
 
 .led-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border-subtle); }
 .led-actions .btn { font-size: 0.82rem; padding: 0.42rem 0.75rem; }
+
+.co-payment-badge { background: var(--indigo-subtle); color: var(--indigo); border: 1px solid var(--indigo); border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.78rem; font-weight: 700; }

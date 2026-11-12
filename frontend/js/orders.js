@@ -8,6 +8,13 @@ import { api, showToast, formatCurrency } from "./api.js";
 const QR_LIB_URL = "js/vendor/qrcode.min.js";
 const POLL_MS = 5000;
 
+const PAYMENT_LABELS = {
+  cash: "💵 Cash",
+  card: "💳 Card",
+  easypaisa_jazzcash: "📱 JazzCash / Easypaisa",
+  bank_transfer: "🏦 Bank Transfer",
+};
+
 const NEXT_STEP = {
   pending: { status: "accepted", label: "Accept" },
   accepted: { status: "preparing", label: "Start Preparing" },
@@ -139,6 +146,7 @@ export const orders = {
 
       const time = order.created_at ? new Date(order.created_at) : null;
       const metaBits = [];
+      metaBits.push(PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash);
       if (time && !isNaN(time)) metaBits.push(time.toLocaleString());
       if (order.customer_phone) metaBits.push(`📞 ${order.customer_phone}`);
       if (metaBits.length) card.appendChild(this.node("div", "order-meta", metaBits.join("  ·  ")));
