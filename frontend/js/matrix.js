@@ -7,7 +7,8 @@ import { api, EMPTY_STATE, showToast, formatCurrency } from "./api.js";
 export const matrix = {
   state: {
     data: structuredClone(EMPTY_STATE.menu_matrix),
-    activeCategory: "ALL"
+    activeCategory: "ALL",
+    activeQuadrant: "ALL"
   },
 
   async init() {
@@ -17,6 +18,7 @@ export const matrix = {
 
   reset() {
     this.state.data = structuredClone(EMPTY_STATE.menu_matrix);
+    this.state.activeQuadrant = "ALL";
     this.render();
   },
 
@@ -36,6 +38,30 @@ export const matrix = {
         showToast("Kasavana-Smith Menu Matrix refreshed!", "info");
       });
     }
+
+    // Quadrant switcher tabs (All, Stars, Plowhorses, Puzzles, Dogs)
+    document.querySelectorAll(".matrix-qtab").forEach((tab) => {
+      tab.addEventListener("click", (e) => {
+        const q = e.currentTarget.getAttribute("data-quadrant") || "ALL";
+        this.state.activeQuadrant = q;
+        document.querySelectorAll(".matrix-qtab").forEach((t) => {
+          t.classList.toggle("active", (t.getAttribute("data-quadrant") || "ALL") === q);
+        });
+        this.filterQuadrantBoxes();
+      });
+    });
+  },
+
+  filterQuadrantBoxes() {
+    const q = this.state.activeQuadrant || "ALL";
+    document.querySelectorAll("[data-quadrant-box]").forEach((box) => {
+      const boxKey = box.getAttribute("data-quadrant-box");
+      if (q === "ALL" || q === boxKey) {
+        box.style.display = "";
+      } else {
+        box.style.display = "none";
+      }
+    });
   },
 
   async loadMatrix() {
@@ -79,6 +105,19 @@ export const matrix = {
                          (quadrants.dogs?.length || 0);
     if (totalItemsEl) totalItemsEl.textContent = `${allItemsCount} Dishes`;
 
+    // Update tab counts
+    const qAll = document.getElementById("qtab-count-all");
+    const qStars = document.getElementById("qtab-count-stars");
+    const qPlow = document.getElementById("qtab-count-plowhorses");
+    const qPuzzles = document.getElementById("qtab-count-puzzles");
+    const qDogs = document.getElementById("qtab-count-dogs");
+
+    if (qAll) qAll.textContent = String(allItemsCount);
+    if (qStars) qStars.textContent = String(quadrants.stars?.length || 0);
+    if (qPlow) qPlow.textContent = String(quadrants.plowhorses?.length || 0);
+    if (qPuzzles) qPuzzles.textContent = String(quadrants.puzzles?.length || 0);
+    if (qDogs) qDogs.textContent = String(quadrants.dogs?.length || 0);
+
     // Dynamically populate category filter options
     const filterSelect = document.getElementById("matrix-category-filter");
     if (filterSelect) {
@@ -102,6 +141,9 @@ export const matrix = {
     this.renderQuadrant("plowhorses", quadrants.plowhorses || []);
     this.renderQuadrant("puzzles", quadrants.puzzles || []);
     this.renderQuadrant("dogs", quadrants.dogs || []);
+
+    // 3. Apply active quadrant visibility filter
+    this.filterQuadrantBoxes();
   },
 
   renderQuadrant(quadrantKey, items) {
@@ -120,24 +162,15 @@ export const matrix = {
     }
 
     if (filtered.length === 0) {
-      listEl.innerHTML = `<div class="empty-quadrant-placeholder">No items in this quadrant for selected category.</div>`;
+      listEl.innerHTML = `<div class="empty-quadrant-placeholder" style="grid-column: 1 / -1;">No items in this quadrant for selected category.</div>`;
       return;
     }
 
-    // Tarteeb (Logical Sorting per Quadrant):
-    // Primary: Volume sold (descending)
-    // Secondary: Contribution Margin (descending)
-    // Tertiary: Alphabetical
+    // Tarteeb (Natural Sequential Sorting: Deal-1, Deal-2, Deal-3 ... Deal-10, Deal-11, Deal-12):
     const sorted = [...filtered].sort((a, b) => {
-      const volA = Number(a.volume) || 0;
-      const volB = Number(b.volume) || 0;
-      if (volB !== volA) return volB - volA;
-
-      const marginA = a.contribution_margin ?? ((Number(a.price) || 0) - (Number(a.cost) || 0));
-      const marginB = b.contribution_margin ?? ((Number(b.price) || 0) - (Number(b.cost) || 0));
-      if (marginB !== marginA) return marginB - marginA;
-
-      return (a.name || "").localeCompare(b.name || "");
+      const nameA = String(a.name || "").trim();
+      const nameB = String(b.name || "").trim();
+      return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
     });
 
     sorted.forEach((item, idx) => {

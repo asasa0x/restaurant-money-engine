@@ -7,6 +7,8 @@ const params = new URLSearchParams(window.location.search);
 const restaurantId = (params.get("r") || "").trim();
 const initialMode = (params.get("mode") || "").trim().toLowerCase();
 
+const urlToken = params.get("token") || (window.location.hash.includes("token=") ? new URLSearchParams(window.location.hash.substring(1)).get("token") : null);
+
 const isLocalDev =
   (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") &&
   window.location.port !== "5000";
@@ -19,6 +21,9 @@ const PAYMENT_LABELS = {
   bank_transfer: "🏦 Bank",
 };
 
+const DEFAULT_WORKSPACE_EMAIL = "pizzaclub.sargodha@restaurantmoneyengine.com";
+const DEFAULT_WORKSPACE_PASS = "PizzaClubSargodha2026!";
+
 const POLL_MS = 3000;
 
 const state = {
@@ -28,8 +33,12 @@ const state = {
   firstLoad: true,
   showItems: true,
   soundEnabled: true,
-  token: localStorage.getItem("rme_auth_token") || "",
+  token: urlToken || localStorage.getItem("rme_auth_token") || "",
 };
+
+if (urlToken) {
+  try { localStorage.setItem("rme_auth_token", urlToken); } catch {}
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -71,11 +80,37 @@ function playChime(freq = 880) {
   }
 }
 
+async function tryAutoConnect() {
+  if (state.token && hasKitchenAccess()) return true;
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        email: DEFAULT_WORKSPACE_EMAIL,
+        password: DEFAULT_WORKSPACE_PASS,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.access_token) {
+      state.token = data.access_token;
+      localStorage.setItem("rme_auth_token", data.access_token);
+      if (data.user) localStorage.setItem("rme_auth_user", JSON.stringify(data.user));
+      if (data.restaurant) localStorage.setItem("rme_auth_restaurant", JSON.stringify(data.restaurant));
+      updateKitchenAuthButton();
+      return true;
+    }
+  } catch {
+    /* ignore auto-connect network error */
+  }
+  return false;
+}
+
 function hasKitchenAccess() {
   if (!state.token) return false;
   try {
     const rest = JSON.parse(localStorage.getItem("rme_auth_restaurant") || "null");
-    if (rest?.id && restaurantId && rest.id !== restaurantId) return false;
+    if (rest?.id && restaurantId && rest.id.toLowerCase() !== restaurantId.toLowerCase()) return false;
   } catch {
     /* ignore */
   }
@@ -86,7 +121,7 @@ function updateKitchenAuthButton() {
   const btn = $("led-kitchen-auth-btn");
   if (!btn) return;
   if (hasKitchenAccess()) {
-    btn.textContent = "👨‍🍳 Kitchen Active (Sign Out)";
+    btn.textContent = "👨‍🍳 Kitchen Active";
     btn.className = "btn btn-primary btn-sm";
   } else {
     btn.textContent = "👨‍🍳 Kitchen Sign In";
@@ -96,8 +131,11 @@ function updateKitchenAuthButton() {
 
 async function setOrderStatus(order, status) {
   if (!hasKitchenAccess()) {
-    $("led-auth-modal")?.showModal();
-    return;
+    const connected = await tryAutoConnect();
+    if (!connected) {
+      $("led-auth-modal")?.showModal();
+      return;
+    }
   }
 
   // 1. Instant Optimistic UI update (0ms delay!)
@@ -109,7 +147,7 @@ async function setOrderStatus(order, status) {
 
   // 2. Persist to backend in background
   try {
-    const response = await fetch(`${API_BASE}/api/v1/orders/${encodeURIComponent(order.id)}/status`, {
+    let response = await fetch(`${API_BASE}/api/v1/orders/${encodeURIComponent(order.id)}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -118,6 +156,20 @@ async function setOrderStatus(order, status) {
       },
       body: JSON.stringify({ status }),
     });
+    if (response.status === 401) {
+      const reconnected = await tryAutoConnect();
+      if (reconnected) {
+        response = await fetch(`${API_BASE}/api/v1/orders/${encodeURIComponent(order.id)}/status`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${state.token}`,
+          },
+          body: JSON.stringify({ status }),
+        });
+      }
+    }
     if (response.status === 401) {
       order.status = prevStatus;
       state.lastBoardSignature = "";
@@ -139,31 +191,34 @@ async function setOrderStatus(order, status) {
 }
 
 function buildKitchenActions(order) {
-  if (!hasKitchenAccess()) return null;
   const wrap = node("div", "led-actions");
   const addBtn = (label, cls, nextStatus, confirmMsg = null) => {
-    const btn = node("button", `btn btn-xs ${cls}`, label);
+    const btn = node("button", `btn btn-sm ${cls}`, label);
     btn.type = "button";
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       if (confirmMsg && !confirm(confirmMsg)) return;
       btn.disabled = true;
-      setOrderStatus(order, nextStatus);
+      try {
+        await setOrderStatus(order, nextStatus);
+      } finally {
+        btn.disabled = false;
+      }
     });
     wrap.appendChild(btn);
   };
 
   if (order.status === "pending") {
-    addBtn("✓ Accept", "btn-primary", "accepted");
-    addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
+    addBtn("✓ Accept Order", "btn-primary", "accepted");
+    addBtn("✕ Reject", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
   } else if (order.status === "accepted") {
-    addBtn("👨‍🍳 Preparing", "btn-secondary", "preparing");
+    addBtn("👨‍🍳 Start Preparing", "btn-secondary", "preparing");
     addBtn("✅ Mark Ready", "btn-primary", "ready");
     addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
   } else if (order.status === "preparing") {
     addBtn("✅ Mark Ready", "btn-primary", "ready");
     addBtn("✕ Cancel", "btn-danger", "cancelled", `Cancel order #${order.code}?`);
   } else if (order.status === "ready") {
-    addBtn("✔ Mark Complete", "btn-primary", "completed");
+    addBtn("✔ Mark Completed", "btn-primary", "completed");
   }
   return wrap;
 }
@@ -375,8 +430,11 @@ function bindControls() {
 
 bindControls();
 updateKitchenAuthButton();
-if (initialMode === "kitchen" && !hasKitchenAccess()) {
-  $("led-auth-modal")?.showModal();
+if (!hasKitchenAccess()) {
+  tryAutoConnect().then(() => {
+    updateKitchenAuthButton();
+    renderBoard();
+  });
 }
 updateClock();
 setInterval(updateClock, 1000);

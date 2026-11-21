@@ -395,6 +395,9 @@ export const orders = {
       return;
     }
     let url = `${window.location.origin}/led.html?r=${encodeURIComponent(restaurant.id)}`;
+    if (api.token) {
+      url += `&token=${encodeURIComponent(api.token)}`;
+    }
     if (mode) url += `&mode=${encodeURIComponent(mode)}`;
     window.open(url, "_blank", "noopener");
   },

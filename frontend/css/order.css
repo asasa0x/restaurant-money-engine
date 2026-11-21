@@ -267,8 +267,42 @@
 .led-qty { color: var(--emerald); font-weight: 800; }
 .led-notes { margin-top: 0.45rem; font-size: 0.85rem; color: var(--amber); font-weight: 600; }
 
-.led-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border-subtle); }
-.led-actions .btn { font-size: 0.82rem; padding: 0.42rem 0.75rem; }
+.led-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+.led-actions .btn {
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0.5rem 0.95rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+.led-actions .btn:active {
+  transform: scale(0.97);
+}
+.led-actions .btn-primary {
+  background: var(--emerald);
+  color: #FFFFFF;
+  border: 1px solid #15803D;
+}
+.led-actions .btn-primary:hover {
+  background: #15803D;
+}
+.led-actions .btn-danger {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+}
+.led-actions .btn-danger:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
 
 .co-payment-badge { background: var(--indigo-subtle); color: var(--indigo); border: 1px solid var(--indigo); border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.78rem; font-weight: 700; }
 

@@ -565,16 +565,52 @@ body {
   color: var(--text-main);
 }
 
-.matrix-grid-2x2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+.matrix-quadrant-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+}
+.matrix-quadrant-tabs::-webkit-scrollbar {
+  display: none;
 }
 
-@media (max-width: 900px) {
-  .matrix-grid-2x2 {
-    grid-template-columns: 1fr;
-  }
+.matrix-qtab {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 9999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.matrix-qtab:hover {
+  border-color: var(--brand-red);
+  color: var(--brand-red);
+  background: var(--bg-card-hover);
+}
+
+.matrix-qtab.active {
+  background: var(--brand-red);
+  border-color: var(--brand-red);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(211, 19, 26, 0.3);
+}
+
+.matrix-quadrants-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .quadrant-box {
@@ -585,6 +621,20 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+.quadrant-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .quadrant-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quadrant-box.stars {
