@@ -73,37 +73,52 @@ body {
 }
 
 .navbar-logo {
-  width: 150px;
-  height: 45px;
-  object-fit: contain;
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  border: 2.5px solid var(--brand-gold);
+  background: var(--brand-red);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(245, 184, 46, 0.4);
 }
 
 @media (max-width: 768px) {
   .navbar-logo {
-    width: 120px;
-    height: auto;
-    max-height: 45px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
   }
 }
 
 .brand-title {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 900;
   letter-spacing: -0.01em;
   color: var(--brand-gold);
   background: none;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: var(--brand-gold);
-  line-height: 1.1;
+  line-height: 1.15;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .brand-subtitle {
-  font-size: 0.76rem;
-  color: #F7F1E5;
-  opacity: 0.9;
+  font-size: 0.8rem;
+  color: #FFF2D6;
+  opacity: 0.95;
   letter-spacing: 0.04em;
   font-weight: 600;
   font-style: italic;
+  margin-top: 1px;
 }
 
 .header-controls {

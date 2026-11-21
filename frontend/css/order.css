@@ -19,15 +19,22 @@
   color: var(--brand-gold);
 }
 .navbar-logo {
-  width: 150px;
-  height: 45px;
-  object-fit: contain;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  border: 2px solid var(--brand-gold);
+  background: var(--brand-red);
 }
 @media (max-width: 768px) {
   .navbar-logo {
-    width: 120px;
-    height: auto;
-    max-height: 45px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
   }
 }
 .co-table-badge {
