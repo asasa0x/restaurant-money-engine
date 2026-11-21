@@ -1,31 +1,36 @@
 :root {
-  --bg-canvas: #0b0f19;
-  --bg-surface: #111827;
-  --bg-card: #1e293b;
-  --bg-card-hover: #263346;
-  --border-color: #334155;
-  --border-subtle: #242f42;
+  /* Warm Restaurant Dashboard Theme */
+  --bg-canvas: #F7F1E5;         /* Soft warm cream main canvas */
+  --bg-surface: #FFFFFF;        /* Crisp white panels and cards */
+  --bg-card: #FFFFFF;           /* Crisp white metric & sub-cards */
+  --bg-card-hover: #FDFBF7;     /* Gentle warm hover tint */
+  --bg-sidebar: #7D0A0A;        /* Deep maroon / crimson sidebar & header accent */
+  --border-color: #E8DFD1;      /* Light warm sand borders & dividers */
+  --border-subtle: #F0E9DF;     /* Subtle warm sand divider */
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-main: #3B120C;         /* Dark espresso brown for primary headings & metrics */
+  --text-muted: #6E6259;        /* Muted taupe/grey for secondary text & timestamps */
+  --text-dim: #8C8077;          /* Lighter muted taupe */
 
-  --emerald: #10b981;
-  --emerald-subtle: rgba(16, 185, 129, 0.12);
-  --rose: #f43f5e;
-  --rose-subtle: rgba(244, 63, 94, 0.12);
-  --amber: #f59e0b;
-  --amber-subtle: rgba(245, 158, 11, 0.12);
-  --indigo: #6366f1;
-  --indigo-subtle: rgba(99, 102, 241, 0.12);
-  --cyan: #06b6d4;
+  --brand-red: #D3131A;         /* Bright pizza red logo accents & highlights */
+  --brand-gold: #F5B82E;        /* Warm golden yellow for logo text & KPI icons */
+
+  --emerald: #16A34A;           /* Emerald green for positive/healthy status indicators */
+  --emerald-subtle: rgba(22, 163, 74, 0.12);
+  --rose: #DC2626;              /* Warm rich crimson-red alert */
+  --rose-subtle: rgba(220, 38, 38, 0.12);
+  --amber: #B45309;             /* Warm amber tone */
+  --amber-subtle: #FEF08A;      /* Soft amber for tag badges */
+  --indigo: #7D0A0A;            /* Crimson tone for workflow/in-progress */
+  --indigo-subtle: rgba(125, 10, 10, 0.1);
+  --cyan: #D3131A;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(59, 18, 12, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(59, 18, 12, 0.08), 0 2px 4px -2px rgba(59, 18, 12, 0.04);
+  --shadow-lg: 0 10px 18px -3px rgba(59, 18, 12, 0.12);
 }
 
 * {
@@ -44,8 +49,8 @@ body {
 
 /* Header */
 .app-header {
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
+  border-bottom: 2px solid var(--brand-red);
   padding: 0.85rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -53,7 +58,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 50;
-  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
 }
 
 .brand-section {
@@ -83,16 +88,18 @@ body {
 
 .brand-title {
   font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #ffffff 40%, var(--emerald) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--brand-gold);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: var(--brand-gold);
 }
 
 .brand-subtitle {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: #F7F1E5;
+  opacity: 0.85;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
@@ -105,15 +112,19 @@ body {
 }
 
 .restaurant-select {
-  background: var(--bg-card);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border: 1px solid rgba(245, 184, 46, 0.4);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.8rem;
   font-size: 0.825rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
+}
+.restaurant-select option {
+  background: #7D0A0A;
+  color: #FFFFFF;
 }
 
 .status-badge {
@@ -123,16 +134,16 @@ body {
   font-size: 0.8rem;
   padding: 0.35rem 0.75rem;
   border-radius: 9999px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #F7F1E5;
 }
 
 .indicator-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--amber);
+  background: var(--brand-gold);
 }
 
 .indicator-dot.online {
@@ -150,21 +161,22 @@ body {
   font-weight: 600;
   padding: 0.35rem 0.75rem;
   border-radius: 9999px;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
   transition: all 0.2s ease;
+  color: #F7F1E5;
 }
 
 .auth-chip.auth-connected {
-  background: var(--emerald-subtle);
-  color: var(--emerald);
+  background: rgba(22, 163, 74, 0.25);
+  color: #FFFFFF;
   border-color: var(--emerald);
 }
 
 .auth-chip.auth-demo {
-  background: var(--indigo-subtle);
-  color: var(--indigo);
-  border-color: var(--indigo);
+  background: rgba(245, 184, 46, 0.2);
+  color: var(--brand-gold);
+  border-color: var(--brand-gold);
 }
 
 /* Main Container & Tabs */
@@ -177,7 +189,7 @@ body {
 .nav-tabs {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 1.75rem;
   overflow-x: auto;
 }
@@ -187,21 +199,21 @@ body {
   border: none;
   color: var(--text-muted);
   font-size: 0.925rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.75rem 1.25rem;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .nav-tab-btn:hover {
-  color: var(--text-main);
+  color: var(--brand-red);
 }
 
 .nav-tab-btn.active {
-  color: var(--emerald);
-  border-bottom-color: var(--emerald);
+  color: var(--brand-red);
+  border-bottom-color: var(--brand-red);
 }
 
 .tab-panel {
@@ -273,9 +285,13 @@ body {
 }
 
 .kpi-sales::before { background: var(--emerald); }
-.kpi-cogs::before { background: var(--amber); }
-.kpi-labor::before { background: var(--indigo); }
-.kpi-prime::before { background: var(--cyan); }
+.kpi-cogs::before { background: var(--brand-gold); }
+.kpi-labor::before { background: var(--brand-red); }
+.kpi-prime::before { background: var(--bg-sidebar); }
+
+.kpi-icon {
+  color: var(--brand-gold);
+}
 
 .kpi-label {
   font-size: 0.775rem;
@@ -447,20 +463,20 @@ body {
 }
 
 .btn-primary {
-  background: var(--emerald);
-  color: #0b0f19;
+  background: var(--brand-red);
+  color: #FFFFFF;
 }
 .btn-primary:hover {
-  background: #059669;
+  background: #B91C1C;
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: #FFFFFF;
   border: 1px solid var(--border-color);
   color: var(--text-main);
 }
 .btn-secondary:hover {
-  background: var(--bg-card-hover);
+  background: var(--border-subtle);
 }
 
 .btn-danger {

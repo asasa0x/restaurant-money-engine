@@ -1,14 +1,23 @@
-/* Customer QR ordering page (mobile-first). Reuses theme variables from style.css */
-.customer-body { padding-bottom: 5.5rem; }
+/* Customer QR ordering page (mobile-first). Reuses warm restaurant theme */
+.customer-body {
+  padding-bottom: 5.5rem;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+}
 
 .co-header {
   position: sticky; top: 0; z-index: 40;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
+  border-bottom: 2px solid var(--brand-red);
   padding: 0.85rem 1rem 0.6rem;
+  box-shadow: var(--shadow-sm);
 }
 .co-header-main { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.6rem; }
-.co-header h1 { font-size: 1.2rem; font-weight: 800; }
+.co-header h1 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--brand-gold);
+}
 .navbar-logo {
   width: 150px;
   height: 45px;
@@ -22,18 +31,34 @@
   }
 }
 .co-table-badge {
-  background: var(--emerald-subtle); color: var(--emerald); border: 1px solid var(--emerald);
+  background: rgba(245, 184, 46, 0.2);
+  color: var(--brand-gold);
+  border: 1px solid var(--brand-gold);
   border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
 }
-.co-search { margin-bottom: 0.6rem; }
+.co-search {
+  margin-bottom: 0.6rem;
+  background: #FFFFFF;
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
 .co-categories { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.35rem; scrollbar-width: none; }
 .co-categories::-webkit-scrollbar { display: none; }
 .co-chip {
-  flex: 0 0 auto; background: var(--bg-card); color: var(--text-main);
-  border: 1px solid var(--border-color); border-radius: 9999px;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.15);
+  color: #F7F1E5;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
   padding: 0.4rem 0.95rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s ease;
 }
-.co-chip.active { background: var(--emerald); color: #0b0f19; border-color: var(--emerald); }
+.co-chip.active {
+  background: var(--brand-gold);
+  color: #3B120C;
+  border-color: var(--brand-gold);
+  font-weight: 700;
+}
 
 .co-main { max-width: 1120px; margin: 0 auto; padding: 1.1rem 1rem; }
 .co-status { text-align: center; color: var(--text-muted); padding: 2rem 0; }
@@ -45,36 +70,39 @@
 
 .co-item {
   display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
-  background: var(--bg-surface); border: 1px solid var(--border-color);
+  background: #FFFFFF; border: 1px solid var(--border-color);
   border-radius: var(--radius-md); padding: 0.9rem 1rem; height: 100%;
+  box-shadow: var(--shadow-sm);
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.co-item:hover { border-color: var(--emerald); }
+.co-item:hover { border-color: var(--brand-red); transform: translateY(-1px); }
 .co-item-info { min-width: 0; }
-.co-item-name { font-weight: 700; line-height: 1.3; }
+.co-item-name { font-weight: 700; line-height: 1.3; color: var(--text-main); }
 .co-item-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
-.co-item-price { color: var(--emerald); font-weight: 700; margin-top: 0.35rem; font-size: 0.95rem; }
+.co-item-price { color: var(--brand-red); font-weight: 800; margin-top: 0.35rem; font-size: 0.95rem; }
 
 .co-stepper { display: flex; align-items: center; gap: 0.45rem; flex: 0 0 auto; }
 .co-stepper button {
   width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1px solid var(--border-color);
-  background: var(--bg-card); color: var(--text-main); font-size: 1.1rem; font-weight: 700; cursor: pointer;
+  background: var(--bg-canvas); color: var(--text-main); font-size: 1.1rem; font-weight: 700; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 }
-.co-stepper button.add { background: var(--emerald); color: #0b0f19; border-color: var(--emerald); }
-.co-stepper .qty { min-width: 1.3rem; text-align: center; font-weight: 700; }
+.co-stepper button.add { background: var(--brand-gold); color: #3B120C; border-color: var(--brand-gold); }
+.co-stepper .qty { min-width: 1.3rem; text-align: center; font-weight: 700; color: var(--text-main); }
 .co-stepper button.co-add-btn {
   width: auto; height: auto; border-radius: 9999px;
   padding: 0.45rem 1rem; font-size: 0.85rem; white-space: nowrap;
-  background: var(--emerald); color: #0b0f19; border-color: var(--emerald);
+  background: var(--brand-red); color: #FFFFFF; border-color: var(--brand-red);
 }
+.co-stepper button.co-add-btn:hover { background: #B91C1C; }
 
 .co-cart-bar {
   position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 45;
   max-width: 688px; margin: 0 auto;
   display: flex; justify-content: space-between; align-items: center;
-  background: var(--emerald); color: #0b0f19; border: none; border-radius: var(--radius-lg);
+  background: var(--brand-red); color: #FFFFFF; border: none; border-radius: var(--radius-lg);
   padding: 0.95rem 1.15rem; font-size: 0.95rem; cursor: pointer; box-shadow: var(--shadow-lg);
+  font-weight: 700;
 }
 .co-cart-bar[hidden] { display: none; }
 
@@ -134,42 +162,60 @@
 
 .orders-list { display: flex; flex-direction: column; gap: 0.75rem; max-height: 640px; overflow-y: auto; }
 .orders-empty { color: var(--text-muted); text-align: center; padding: 2rem 0.5rem; font-size: 0.9rem; }
-.order-card { background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--amber); border-radius: var(--radius-md); padding: 0.85rem; }
-.order-card.order-accepted, .order-card.order-preparing { border-left-color: var(--indigo); }
+/* Live orders panels in owner dashboard */
+.order-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--amber-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.95rem;
+  box-shadow: var(--shadow-sm);
+}
+.order-card.order-pending { border-left-color: var(--brand-gold); }
+.order-card.order-accepted, .order-card.order-preparing { border-left-color: var(--brand-red); }
 .order-card.order-ready, .order-card.order-completed { border-left-color: var(--emerald); }
 .order-card.order-cancelled { border-left-color: var(--rose); opacity: 0.7; }
 .order-card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
-.order-code { letter-spacing: 0.08em; }
+.order-code { letter-spacing: 0.08em; color: var(--text-main); font-weight: 800; }
 .order-meta { font-size: 0.78rem; color: var(--text-muted); }
-.order-status-pill { text-transform: capitalize; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 9999px; background: var(--amber-subtle); color: var(--amber); }
-.order-status-pill.accepted, .order-status-pill.preparing { background: var(--indigo-subtle); color: var(--indigo); }
+.order-status-pill {
+  text-transform: capitalize; font-size: 0.72rem; font-weight: 700;
+  padding: 0.2rem 0.65rem; border-radius: 9999px;
+  background: var(--amber-subtle); color: #854D0E;
+}
+.order-status-pill.accepted, .order-status-pill.preparing { background: rgba(211, 19, 26, 0.12); color: var(--brand-red); }
 .order-status-pill.ready, .order-status-pill.completed { background: var(--emerald-subtle); color: var(--emerald); }
 .order-status-pill.cancelled { background: var(--rose-subtle); color: var(--rose); }
-.order-lines { margin: 0.5rem 0; border-top: 1px solid var(--border-subtle); padding-top: 0.4rem; font-size: 0.88rem; }
-.order-line { display: flex; justify-content: space-between; padding: 0.15rem 0; }
-.order-notes { font-size: 0.82rem; color: var(--amber); margin-bottom: 0.4rem; }
+.order-lines { margin: 0.5rem 0; border-top: 1px solid var(--border-color); padding-top: 0.4rem; font-size: 0.88rem; }
+.order-line { display: flex; justify-content: space-between; padding: 0.15rem 0; color: var(--text-main); }
+.order-notes { font-size: 0.82rem; color: #B45309; margin-bottom: 0.4rem; }
 .order-card-foot { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .order-actions { display: flex; gap: 0.4rem; }
 
 .order-title-group { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
 .order-table-badge {
-  background: var(--emerald-subtle); color: var(--emerald); border: 1px solid var(--emerald);
+  background: var(--amber-subtle); color: #854D0E; border: 1px solid #FDE047;
   border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em;
 }
-.qr-divider { border: none; border-top: 1px solid var(--border-subtle); margin: 1.2rem 0; }
-.qr-bulk-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.25rem; }
+.qr-divider { border: none; border-top: 1px solid var(--border-color); margin: 1.2rem 0; }
+.qr-bulk-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; }
 .qr-bulk-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
 
 /* Live LED / Kitchen Display Board */
-.led-body { min-height: 100vh; display: flex; flex-direction: column; padding: 0; }
+.led-body {
+  min-height: 100vh; display: flex; flex-direction: column; padding: 0;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+}
 .led-header {
   display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
-  background: var(--bg-surface); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem;
+  background: var(--bg-sidebar); border-bottom: 2px solid var(--brand-red); padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-md);
 }
-.led-header h1 { font-size: 1.45rem; font-weight: 800; }
-.led-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem; }
+.led-header h1 { font-size: 1.45rem; font-weight: 800; color: var(--brand-gold); }
+.led-sub { font-size: 0.85rem; color: #F7F1E5; opacity: 0.85; margin-top: 0.15rem; }
 .led-controls { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
-.led-clock { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--emerald); margin-right: 0.5rem; }
+.led-clock { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--brand-gold); margin-right: 0.5rem; }
 
 .led-grid {
   flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 1rem 1.5rem;
@@ -177,27 +223,29 @@
 @media (max-width: 960px) { .led-grid { grid-template-columns: 1fr; } }
 
 .led-col {
-  background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+  background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-lg);
   display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 .led-col-head {
   display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.1rem;
-  border-bottom: 1px solid var(--border-color); background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color); background: #FAF7F2;
 }
-.led-col-head h2 { font-size: 1.1rem; font-weight: 800; }
+.led-col-head h2 { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
 .led-count {
   font-size: 1rem; font-weight: 800; padding: 0.2rem 0.7rem; border-radius: 9999px;
-  background: var(--bg-canvas); border: 1px solid var(--border-color);
+  background: var(--amber-subtle); color: #854D0E; border: 1px solid #FDE047;
 }
 .led-list { padding: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; }
-.led-empty { color: var(--text-dim); text-align: center; padding: 2.5rem 1rem; font-size: 0.95rem; }
+.led-empty { color: var(--text-muted); text-align: center; padding: 2.5rem 1rem; font-size: 0.95rem; }
 
 .led-card {
-  background: var(--bg-card); border: 1px solid var(--border-color); border-left: 6px solid var(--amber);
+  background: #FFFFFF; border: 1px solid var(--border-color); border-left: 6px solid var(--brand-gold);
   border-radius: var(--radius-md); padding: 0.95rem 1rem;
+  box-shadow: var(--shadow-sm);
 }
-.led-card.led-status-accepted, .led-card.led-status-preparing { border-left-color: var(--indigo); }
-.led-card.led-status-ready { border-left-color: var(--emerald); background: rgba(16, 185, 129, 0.08); }
+.led-card.led-status-accepted, .led-card.led-status-preparing { border-left-color: var(--brand-red); }
+.led-card.led-status-ready { border-left-color: var(--emerald); background: rgba(22, 163, 74, 0.05); }
 
 .led-card-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
 .led-table-badge {
