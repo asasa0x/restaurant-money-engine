@@ -87,22 +87,23 @@ body {
 }
 
 .brand-title {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 1.35rem;
+  font-weight: 900;
   letter-spacing: -0.01em;
   color: var(--brand-gold);
   background: none;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: var(--brand-gold);
+  line-height: 1.1;
 }
 
 .brand-subtitle {
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: #F7F1E5;
-  opacity: 0.85;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  opacity: 0.9;
+  letter-spacing: 0.04em;
   font-weight: 600;
+  font-style: italic;
 }
 
 .header-controls {
