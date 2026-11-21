@@ -394,18 +394,62 @@ function renderTimeInfo(status) {
   elInfo.textContent = parts.join("  ·  ");
 }
 
-function notifyCustomerChime() {
+function notifyCustomerChime(status = "accepted") {
   try {
-    if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+    if (navigator.vibrate) {
+      if (status === "ready") {
+        navigator.vibrate([250, 100, 250, 100, 350]);
+      } else {
+        navigator.vibrate([150, 80, 150]);
+      }
+    }
+
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    osc.frequency.value = 880;
-    osc.connect(ctx.destination);
-    osc.start();
-    setTimeout(() => { osc.stop(); ctx.close(); }, 220);
-  } catch {
+    if (!state.audioCtx) state.audioCtx = new AudioCtx();
+    const ctx = state.audioCtx;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+
+    const now = ctx.currentTime;
+    const playTone = (freq, offset, duration, gainLevel = 0.3) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + offset);
+      gain.gain.setValueAtTime(gainLevel, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + offset);
+      osc.stop(now + offset + duration);
+    };
+
+    if (status === "accepted") {
+      // 🔔 Order Confirmed Ding-Ding (E5 -> A5)
+      playTone(659.25, 0.0, 0.22);
+      playTone(880.00, 0.18, 0.38);
+    } else if (status === "preparing") {
+      // 👨‍🍳 Kitchen Cooking Ding-Dong (C5 -> G5)
+      playTone(523.25, 0.0, 0.22);
+      playTone(783.99, 0.18, 0.38);
+    } else if (status === "ready") {
+      // 🎉 Celebratory Ready Chime (C5 -> E5 -> G5 -> C6)
+      playTone(523.25, 0.0, 0.14);
+      playTone(659.25, 0.12, 0.14);
+      playTone(783.99, 0.24, 0.18);
+      playTone(1046.50, 0.40, 0.55);
+    } else if (status === "completed") {
+      // ✨ Order Completed Chime (G5 -> C5)
+      playTone(783.99, 0.0, 0.22);
+      playTone(523.25, 0.18, 0.38);
+    } else if (status === "cancelled") {
+      // ⚠️ Cancelled low tone alert
+      playTone(440.0, 0.0, 0.22);
+      playTone(329.6, 0.18, 0.38);
+    } else {
+      playTone(880, 0.0, 0.3);
+    }
+  } catch (_) {
     /* audio/vibration not available */
   }
 }
@@ -476,8 +520,8 @@ function setStatus(status, orderData = null) {
   if (orderData?.updated_at) state.orderUpdatedAt = orderData.updated_at;
 
   const prev = state.lastStatus;
-  if (prev && prev !== status && ["accepted", "preparing", "ready"].includes(status)) {
-    notifyCustomerChime();
+  if (prev && prev !== status) {
+    notifyCustomerChime(status);
   }
   state.lastStatus = status;
 
@@ -552,7 +596,7 @@ function startTracking(orderId) {
       /* transient network error: keep polling */
     }
   };
-  state.trackTimer = setInterval(poll, 4000);
+  state.trackTimer = setInterval(poll, 2500);
   state.clockTimer = setInterval(() => {
     if ($("co-success-modal")?.open) renderTimeInfo(state.lastStatus || "pending");
   }, 1000);
@@ -646,6 +690,19 @@ function bindEvents() {
       clearInterval(state.trackTimer);
       clearInterval(state.clockTimer);
     }
+  });
+
+  // Unlock audio context on any screen interaction so browser allows instant chime alerts
+  ["click", "touchstart"].forEach((evt) => {
+    document.addEventListener(evt, () => {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!state.audioCtx && AudioCtx) state.audioCtx = new AudioCtx();
+        if (state.audioCtx && state.audioCtx.state === "suspended") {
+          state.audioCtx.resume().catch(() => {});
+        }
+      } catch (_) {}
+    }, { passive: true });
   });
 }
 

@@ -244,12 +244,17 @@ export const orders = {
   },
 
   async setStatus(order, status) {
+    const prevStatus = order.status;
+    // 1. Instant optimistic UI update (0ms latency)
+    order.status = status;
+    this.render();
+    this.beep();
     try {
       await api.put(`/api/v1/orders/${order.id}/status`, { status });
-      order.status = status;
-      this.render();
-      showToast(`Order #${order.code} → ${status}`, "success");
+      showToast(`Order #${order.code} → ${status.toUpperCase()}`, "success");
     } catch (err) {
+      order.status = prevStatus;
+      this.render();
       showToast(`Could not update order: ${err.message}`, "error");
     }
   },

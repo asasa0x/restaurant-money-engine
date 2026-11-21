@@ -99,6 +99,15 @@ async function setOrderStatus(order, status) {
     $("led-auth-modal")?.showModal();
     return;
   }
+
+  // 1. Instant Optimistic UI update (0ms delay!)
+  const prevStatus = order.status;
+  order.status = status;
+  state.lastBoardSignature = state.orders.map((o) => `${o.id}:${o.status}`).join("|");
+  playChime(status === "accepted" ? 659 : status === "ready" ? 1046 : 880);
+  renderBoard();
+
+  // 2. Persist to backend in background
   try {
     const response = await fetch(`${API_BASE}/api/v1/orders/${encodeURIComponent(order.id)}/status`, {
       method: "PUT",
@@ -110,17 +119,21 @@ async function setOrderStatus(order, status) {
       body: JSON.stringify({ status }),
     });
     if (response.status === 401) {
+      order.status = prevStatus;
+      state.lastBoardSignature = "";
+      renderBoard();
       state.token = "";
       localStorage.removeItem("rme_auth_token");
       updateKitchenAuthButton();
-      renderBoard();
       $("led-auth-modal")?.showModal();
       return;
     }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-    await fetchBoard();
   } catch (err) {
+    order.status = prevStatus;
+    state.lastBoardSignature = "";
+    renderBoard();
     $("led-sync-status").textContent = `Status update failed: ${err.message}`;
   }
 }
@@ -182,7 +195,9 @@ function renderColumn(listId, countId, items) {
     const payBase = PAYMENT_LABELS[order.payment_method] || PAYMENT_LABELS.cash;
     const payText = order.payment_ref ? `${payBase} (Ref: ${order.payment_ref})` : payBase;
     timeRow.appendChild(node("span", "", `${payText}${placed ? ` · ${placed}` : ""}`));
-    timeRow.appendChild(node("span", "led-elapsed", elapsed ? `⏱ ${elapsed}` : ""));
+    const elapsedSpan = node("span", "led-elapsed", elapsed ? `⏱ ${elapsed}` : "");
+    if (order.created_at) elapsedSpan.setAttribute("data-created-at", order.created_at);
+    timeRow.appendChild(elapsedSpan);
     card.appendChild(timeRow);
 
     if (state.showItems && Array.isArray(order.items) && order.items.length) {
@@ -248,11 +263,17 @@ async function fetchBoard() {
 
     state.knownPending = nextPending;
     state.knownReady = nextReady;
-    state.firstLoad = false;
     state.orders = incoming;
 
     $("led-sync-status").textContent = `Live · ${incoming.length} active order${incoming.length === 1 ? "" : "s"} · Auto-updates every 3s`;
-    renderBoard();
+
+    // Smart DOM diffing: only re-render DOM if orders or statuses actually changed!
+    const signature = incoming.map((o) => `${o.id}:${o.status}`).join("|");
+    if (state.firstLoad || signature !== state.lastBoardSignature) {
+      state.lastBoardSignature = signature;
+      renderBoard();
+    }
+    state.firstLoad = false;
   } catch (err) {
     $("led-sync-status").textContent = `Reconnecting… (${err.message})`;
   }
@@ -261,6 +282,13 @@ async function fetchBoard() {
 function updateClock() {
   const el = $("led-clock");
   if (el) el.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function updateElapsedClocks() {
+  document.querySelectorAll(".led-elapsed[data-created-at]").forEach((el) => {
+    const iso = el.getAttribute("data-created-at");
+    if (iso) el.textContent = `⏱ ${formatElapsed(iso)}`;
+  });
 }
 
 function bindControls() {
@@ -352,7 +380,7 @@ if (initialMode === "kitchen" && !hasKitchenAccess()) {
 }
 updateClock();
 setInterval(updateClock, 1000);
-setInterval(() => { if (!state.firstLoad) renderBoard(); }, 1000);
+setInterval(updateElapsedClocks, 1000);
 fetchBoard();
 setInterval(fetchBoard, POLL_MS);
 
