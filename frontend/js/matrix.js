@@ -120,21 +120,41 @@ export const matrix = {
     }
 
     if (filtered.length === 0) {
-      listEl.innerHTML = `<div class="empty-quadrant-placeholder">No items in this quadrant</div>`;
+      listEl.innerHTML = `<div class="empty-quadrant-placeholder">No items in this quadrant for selected category.</div>`;
       return;
     }
 
-    filtered.forEach(item => {
+    // Tarteeb (Logical Sorting per Quadrant):
+    // Primary: Volume sold (descending)
+    // Secondary: Contribution Margin (descending)
+    // Tertiary: Alphabetical
+    const sorted = [...filtered].sort((a, b) => {
+      const volA = Number(a.volume) || 0;
+      const volB = Number(b.volume) || 0;
+      if (volB !== volA) return volB - volA;
+
+      const marginA = a.contribution_margin ?? ((Number(a.price) || 0) - (Number(a.cost) || 0));
+      const marginB = b.contribution_margin ?? ((Number(b.price) || 0) - (Number(b.cost) || 0));
+      if (marginB !== marginA) return marginB - marginA;
+
+      return (a.name || "").localeCompare(b.name || "");
+    });
+
+    sorted.forEach((item, idx) => {
       const card = document.createElement("div");
       card.className = "dish-matrix-card";
 
-      const margin = item.contribution_margin ?? (item.price - item.cost);
-      const foodCostPct = item.food_cost_pct ?? (item.price > 0 ? (item.cost / item.price * 100).toFixed(1) : 0);
+      const margin = item.contribution_margin ?? ((Number(item.price) || 0) - (Number(item.cost) || 0));
+      const foodCostPct = item.food_cost_pct ?? (Number(item.price) > 0 ? ((Number(item.cost) / Number(item.price)) * 100).toFixed(1) : 0);
+      const totalProfit = item.total_profit ?? (margin * (Number(item.volume) || 0));
 
       card.innerHTML = `
         <div class="dish-card-header">
           <div>
-            <h4 class="dish-name">${escapeHtml(item.name)}</h4>
+            <h4 class="dish-name">
+              <span class="dish-rank-tag">#${idx + 1}</span>
+              ${escapeHtml(item.name)}
+            </h4>
             <span class="dish-category">${escapeHtml(item.category || "General")}</span>
           </div>
           <div class="dish-pricing">
@@ -145,17 +165,22 @@ export const matrix = {
 
         <div class="dish-metrics-row">
           <div class="metric-chip">
-            <span class="chip-label">Volume:</span>
+            <span class="chip-label">📦 Volume:</span>
             <span class="chip-val">${item.volume || 0} sold</span>
           </div>
           <div class="metric-chip">
-            <span class="chip-label">Plate Cost:</span>
+            <span class="chip-label">🥩 Plate Cost:</span>
             <span class="chip-val">${formatCurrency(item.cost)}</span>
           </div>
           <div class="metric-chip">
-            <span class="chip-label">Food Cost:</span>
-            <span class="chip-val ${foodCostPct > 35 ? "text-alert" : "text-healthy"}">${foodCostPct}%</span>
+            <span class="chip-label">📊 Food Cost:</span>
+            <span class="chip-val ${Number(foodCostPct) > 35 ? "text-alert" : "text-healthy"}">${foodCostPct}%</span>
           </div>
+          ${Number(totalProfit) > 0 ? `
+          <div class="metric-chip" title="Total gross profit generated">
+            <span class="chip-label">💰 Profit:</span>
+            <span class="chip-val text-emerald">${formatCurrency(totalProfit)}</span>
+          </div>` : ""}
         </div>
 
         <div class="dish-strategy-badge">
