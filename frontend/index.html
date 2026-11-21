@@ -21,22 +21,18 @@
     </div>
 
     <div class="header-controls">
-      <!-- Active Tenant Restaurant Selector -->
-      <select id="restaurant-select" class="restaurant-select" aria-label="Active Restaurant" disabled>
-        <option value="">Sign in to load restaurant</option>
-      </select>
+      <!-- Active Tenant Restaurant Selector / Badge -->
+      <button type="button" id="btn-open-branch-modal" class="restaurant-select-btn" title="Click to view restaurant details">
+        <span id="active-restaurant-label">Pizza Club Sargodha (PKR)</span>
+      </button>
 
-      <!-- Supabase Auth Status Chip -->
-      <div id="auth-status-chip" class="auth-chip auth-demo" title="Current authentication status">
-        Not Signed In
-      </div>
-      <button class="btn btn-primary btn-xs" id="btn-open-auth-modal">Sign In / Account</button>
+      <button type="button" class="btn btn-primary btn-xs" id="btn-open-auth-modal">Account</button>
 
       <!-- Backend Live Health Indicator -->
-      <div class="status-badge" title="Flask Backend Health Status">
+      <button type="button" class="status-badge" id="btn-refresh-health" title="Click to test API connection">
         <span class="indicator-dot" id="header-health-dot"></span>
-        <span id="header-health-text">Checking API...</span>
-      </div>
+        <span id="header-health-text">API Online</span>
+      </button>
     </div>
   </header>
 

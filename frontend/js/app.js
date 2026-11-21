@@ -105,33 +105,19 @@ function resetAllViews() {
 }
 
 function updateAuthHeaderUI() {
-  const statusEl = document.getElementById("auth-status-chip");
-  const switcher = document.getElementById("restaurant-select");
+  const restLabel = document.getElementById("active-restaurant-label");
   const clearBtn = document.getElementById("btn-clear-token");
   const openBtn = document.getElementById("btn-open-auth-modal");
 
   const isAuth = api.isAuthenticated();
-  const user = api.getUser();
   const restaurant = api.getRestaurant();
 
-  if (statusEl) {
-    statusEl.textContent = isAuth
-      ? (user?.email ? `${user.email}` : "Authenticated")
-      : "Not Signed In";
-    statusEl.className = `auth-chip ${isAuth ? "auth-connected" : "auth-demo"}`;
-  }
-
-  if (switcher) {
-    switcher.innerHTML = "";
-    const opt = document.createElement("option");
+  if (restLabel) {
     if (isAuth && restaurant) {
-      opt.value = restaurant.id || "";
-      opt.textContent = `${restaurant.name} (${restaurant.currency || "USD"})`;
+      restLabel.textContent = `📍 ${restaurant.name} (${restaurant.currency || "PKR"})`;
     } else {
-      opt.value = "";
-      opt.textContent = "Sign in to load restaurant";
+      restLabel.textContent = "Sign in to load restaurant";
     }
-    switcher.appendChild(opt);
   }
 
   if (clearBtn) {
@@ -139,7 +125,7 @@ function updateAuthHeaderUI() {
   }
 
   if (openBtn) {
-    openBtn.textContent = isAuth ? "Account" : "Sign In / Account";
+    openBtn.textContent = isAuth ? "Account" : "Sign In";
   }
 }
 
@@ -187,6 +173,15 @@ async function setupHealthCheck() {
 
   check();
   setInterval(check, 30000);
+
+  const healthBtn = document.getElementById("btn-refresh-health");
+  if (healthBtn) {
+    healthBtn.addEventListener("click", async () => {
+      if (label) label.textContent = "Pinging API...";
+      await check();
+      showToast("API connection verified!", "info");
+    });
+  }
 }
 
 // Real Supabase Auth modal (Login & Restaurant Account Signup)
@@ -242,6 +237,13 @@ function setupAuthModal() {
   if (modeSignupBtn) modeSignupBtn.addEventListener("click", () => setMode("signup"));
 
   updateAuthHeaderUI();
+
+  const branchBtn = document.getElementById("btn-open-branch-modal");
+  if (branchBtn && authModal) {
+    branchBtn.addEventListener("click", () => {
+      authModal.showModal();
+    });
+  }
 
   if (authBtn && authModal) {
     authBtn.addEventListener("click", () => {
