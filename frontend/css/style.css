@@ -67,6 +67,20 @@ body {
   height: 36px;
 }
 
+.navbar-logo {
+  width: 150px;
+  height: 45px;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .navbar-logo {
+    width: 120px;
+    height: auto;
+    max-height: 45px;
+  }
+}
+
 .brand-title {
   font-size: 1.15rem;
   font-weight: 700;

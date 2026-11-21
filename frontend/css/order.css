@@ -9,6 +9,18 @@
 }
 .co-header-main { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.6rem; }
 .co-header h1 { font-size: 1.2rem; font-weight: 800; }
+.navbar-logo {
+  width: 150px;
+  height: 45px;
+  object-fit: contain;
+}
+@media (max-width: 768px) {
+  .navbar-logo {
+    width: 120px;
+    height: auto;
+    max-height: 45px;
+  }
+}
 .co-table-badge {
   background: var(--emerald-subtle); color: var(--emerald); border: 1px solid var(--emerald);
   border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
