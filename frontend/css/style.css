@@ -910,3 +910,140 @@ dialog.app-modal::backdrop {
 .font-bold { font-weight: 700; }
 .text-center { text-align: center; }
 .py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+
+/* ==========================================================================
+   Gross Sales Performance Trend Chart
+   ========================================================================== */
+.sales-chart-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+  overflow: visible;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 260px;
+  overflow: visible;
+  display: block;
+}
+
+.chart-grid-line {
+  stroke: var(--border-color);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.chart-axis-text {
+  font-size: 11px;
+  fill: var(--text-muted);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.chart-bar {
+  fill: var(--brand-red);
+  opacity: 0.85;
+  cursor: pointer;
+  transition: opacity 0.2s ease, fill 0.2s ease;
+}
+
+.chart-bar:hover,
+.chart-bar.active {
+  opacity: 1;
+  fill: #B91C1C;
+}
+
+.chart-trend-area {
+  fill: url(#salesGradient);
+  opacity: 0.18;
+}
+
+.chart-trend-line {
+  fill: none;
+  stroke: var(--brand-gold);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(245, 184, 46, 0.45));
+}
+
+.chart-point {
+  fill: #FFFFFF;
+  stroke: var(--brand-red);
+  stroke-width: 3;
+  r: 5;
+  cursor: pointer;
+  transition: r 0.15s ease, stroke 0.15s ease, fill 0.15s ease;
+}
+
+.chart-point:hover,
+.chart-point.active {
+  r: 7.5;
+  stroke: var(--brand-gold);
+  fill: var(--brand-red);
+}
+
+.chart-val-label {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--text-main);
+  text-anchor: middle;
+}
+
+.chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: var(--bg-card-hover);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+}
+
+.chart-empty-icon {
+  font-size: 2.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.chart-empty-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.chart-empty-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 440px;
+}
+
+.chart-tooltip-box {
+  position: absolute;
+  pointer-events: none;
+  background: #3B120C;
+  color: #FFFFFF;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--brand-gold);
+  transform: translate(-50%, -115%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+  z-index: 20;
+  display: none;
+}
+
+.chart-tooltip-box strong {
+  color: var(--brand-gold);
+}
+

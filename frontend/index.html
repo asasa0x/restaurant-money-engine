@@ -115,6 +115,23 @@
         </div>
       </div>
 
+      <!-- Gross Sales Performance Trend Chart -->
+      <div class="panel" id="sales-chart-panel">
+        <div class="panel-header" style="flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h3 class="panel-title">📈 Gross Sales Performance Trend</h3>
+            <p class="panel-subtitle">7-day sales trajectory and daily revenue volume</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <div id="chart-7d-avg" class="pct-pill" style="background: var(--bg-canvas); color: var(--text-main); font-size: 0.825rem; font-weight: 700; border: 1px solid var(--border-color); display: none;"></div>
+            <div id="chart-total-7d" class="pct-pill pct-low" style="font-size: 0.85rem; font-weight: 700; display: none;"></div>
+          </div>
+        </div>
+        <div class="sales-chart-wrapper" id="sales-chart-container">
+          <!-- Rendered dynamically by dashboard.js -->
+        </div>
+      </div>
+
       <!-- Log Daily Financials Entry Form -->
       <div class="panel">
         <div class="panel-header">
