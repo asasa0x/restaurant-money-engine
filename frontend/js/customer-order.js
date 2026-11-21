@@ -417,6 +417,23 @@ const PAYMENT_LABELS = {
   bank_transfer: "🏦 Bank Transfer",
 };
 
+function updateActiveOrderBar(order) {
+  const bar = $("co-active-order-bar");
+  if (!bar) return;
+  if (!order || FINAL_STATUSES.includes(order.status)) {
+    bar.hidden = true;
+    return;
+  }
+  const codeEl = $("co-active-order-code");
+  const statusEl = $("co-active-order-status");
+  if (codeEl) codeEl.textContent = `#${order.code || "---"}`;
+  if (statusEl) {
+    statusEl.textContent = order.status;
+    statusEl.className = `co-status-pill ${order.status}`;
+  }
+  bar.hidden = false;
+}
+
 function showSuccess(order) {
   state.lastStatus = order.status;
   state.orderCreatedAt = order.created_at || new Date().toISOString();
@@ -448,6 +465,7 @@ function showSuccess(order) {
     lines.appendChild(row);
   });
   setStatus(order.status, order);
+  updateActiveOrderBar(order);
   const modal = $("co-success-modal");
   if (!modal.open) modal.showModal();
   startTracking(order.id);
@@ -512,6 +530,9 @@ function setStatus(status, orderData = null) {
   });
 
   renderTimeInfo(status);
+
+  const currentCode = orderData?.code || $("co-success-code")?.textContent || "";
+  updateActiveOrderBar({ code: currentCode, status });
 }
 
 function startTracking(orderId) {
@@ -525,6 +546,7 @@ function startTracking(orderId) {
         clearInterval(state.trackTimer);
         clearInterval(state.clockTimer);
         localStorage.removeItem(LAST_ORDER_KEY);
+        updateActiveOrderBar(null);
       }
     } catch {
       /* transient network error: keep polling */
@@ -587,6 +609,16 @@ function bindEvents() {
   $("co-close-success")?.addEventListener("click", () => {
     $("co-success-modal").close();
   });
+  $("co-view-active-order")?.addEventListener("click", async () => {
+    const id = localStorage.getItem(LAST_ORDER_KEY);
+    if (!id) return;
+    try {
+      const res = await call(`/api/v1/public/orders/${encodeURIComponent(id)}`);
+      showSuccess(res.order);
+    } catch {
+      /* ignore */
+    }
+  });
   $("co-refresh-status")?.addEventListener("click", async () => {
     const id = localStorage.getItem(LAST_ORDER_KEY);
     if (!id) return;
@@ -605,6 +637,7 @@ function bindEvents() {
     clearInterval(state.trackTimer);
     clearInterval(state.clockTimer);
     localStorage.removeItem(LAST_ORDER_KEY);
+    updateActiveOrderBar(null);
     $("co-success-modal").close();
   });
   $("co-success-modal").addEventListener("close", () => {

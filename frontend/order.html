@@ -22,6 +22,16 @@
     <nav id="co-categories" class="co-categories" aria-label="Menu categories"></nav>
   </header>
 
+  <!-- Persistent Active Order Bar (shown when an order is in progress) -->
+  <div id="co-active-order-bar" class="co-active-order-bar" hidden>
+    <div class="co-active-order-info">
+      <span class="co-pulse-dot"></span>
+      <span>Active Order <strong id="co-active-order-code">#---</strong></span>
+      <span id="co-active-order-status" class="co-status-pill pending">pending</span>
+    </div>
+    <button type="button" id="co-view-active-order" class="btn btn-xs btn-primary">Track Order →</button>
+  </div>
+
   <main class="co-main">
     <div id="co-status" class="co-status" role="status">Loading menu…</div>
     <div id="co-menu"></div>
