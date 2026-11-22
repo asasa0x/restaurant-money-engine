@@ -1253,3 +1253,292 @@ dialog.app-modal::backdrop {
   color: var(--brand-gold);
 }
 
+/* ==========================================================================
+   Financial Health & Operating Benchmarks Footer Panel
+   ========================================================================== */
+.financial-health-footer {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-top: 4px solid var(--brand-red);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin-top: 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.fh-footer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.25rem;
+}
+
+.fh-footer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fh-footer-icon {
+  font-size: 1.75rem;
+}
+
+.fh-footer-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.fh-footer-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0 0;
+}
+
+.fh-footer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--emerald);
+  background: var(--emerald-subtle);
+  border: 1px solid var(--emerald);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+}
+
+.fh-benchmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
+}
+
+@media (max-width: 1024px) {
+  .fh-benchmarks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .fh-benchmarks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fh-benchmark-card {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.fh-benchmark-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-red);
+}
+
+.fh-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.fh-metric-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.fh-metric-target {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--bg-sidebar);
+}
+
+.fh-metric-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 0.85rem;
+}
+
+.fh-status-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.fh-status-tag.healthy {
+  background: var(--emerald-subtle);
+  color: var(--emerald);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.fh-status-tag.neutral {
+  background: var(--amber-subtle);
+  color: #854D0E;
+  border: 1px solid rgba(245, 184, 46, 0.4);
+}
+
+/* ==========================================================================
+   Global Application Footer
+   ========================================================================== */
+.app-footer {
+  background: var(--bg-sidebar);
+  color: #F7F1E5;
+  margin-top: 3.5rem;
+  border-top: 3px solid var(--brand-red);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.25fr;
+  gap: 2.5rem;
+  padding: 3rem 1.5rem 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.95rem;
+}
+
+.footer-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-gold);
+  background: #FFFFFF;
+}
+
+.footer-restaurant-name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--brand-gold);
+  margin: 0;
+}
+
+.footer-tagline {
+  font-size: 0.82rem;
+  color: #F7F1E5;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.footer-description {
+  font-size: 0.85rem;
+  color: #E8DFD1;
+  opacity: 0.85;
+  line-height: 1.55;
+  max-width: 480px;
+}
+
+.footer-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--brand-gold);
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.footer-tab-link {
+  color: #F7F1E5;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.9;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.footer-tab-link:hover {
+  color: var(--brand-gold);
+  opacity: 1;
+}
+
+.footer-status-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  font-size: 0.84rem;
+}
+
+.footer-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #E8DFD1;
+}
+
+.footer-dot-green {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 6px var(--emerald);
+  flex-shrink: 0;
+}
+
+.footer-kds-link {
+  color: var(--brand-gold);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.footer-kds-link:hover {
+  text-decoration: underline;
+}
+
+.footer-bottom-bar {
+  background: #240505;
+  border-top: 1px solid rgba(232, 223, 209, 0.12);
+  padding: 1rem 0;
+  font-size: 0.8rem;
+  color: #C5BCB2;
+}
+
+.footer-bottom-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.footer-heart {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+

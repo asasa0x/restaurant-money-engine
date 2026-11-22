@@ -148,6 +148,19 @@ function setupTabs() {
       }
     });
   });
+
+  // Footer navigation links
+  document.querySelectorAll(".footer-tab-link[data-go-tab]").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetTab = link.getAttribute("data-go-tab");
+      const tabBtn = document.querySelector(`.nav-tab-btn[data-tab="${targetTab}"]`);
+      if (tabBtn) {
+        tabBtn.click();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+  });
 }
 
 // Background health check polling
