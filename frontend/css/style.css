@@ -1523,22 +1523,32 @@ dialog.app-modal::backdrop {
 .footer-bottom-bar {
   background: #240505;
   border-top: 1px solid rgba(232, 223, 209, 0.12);
-  padding: 1rem 0;
-  font-size: 0.8rem;
+  padding: 1.25rem 1rem;
+  font-size: 0.85rem;
   color: #C5BCB2;
+  text-align: center;
 }
 
 .footer-bottom-inner {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  text-align: center;
+  gap: 0.45rem;
+  margin: 0 auto;
+}
+
+.footer-bottom-inner p {
+  margin: 0;
+  text-align: center;
 }
 
 .footer-heart {
   margin: 0;
-  font-size: 0.8rem;
-  opacity: 0.9;
+  font-size: 0.82rem;
+  opacity: 0.85;
+  color: #E8DFD1;
+  text-align: center;
 }
 
