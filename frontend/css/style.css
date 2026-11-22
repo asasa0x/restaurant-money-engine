@@ -802,6 +802,53 @@ body {
   gap: 0.45rem;
 }
 
+.dish-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border-subtle);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dish-card-actions .btn {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.38rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dish-card-actions .btn-matrix-edit {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.dish-card-actions .btn-matrix-edit:hover {
+  background: var(--bg-canvas);
+  border-color: var(--brand-red);
+  color: var(--brand-red);
+  box-shadow: 0 1px 4px rgba(211, 19, 26, 0.15);
+}
+
+.dish-card-actions .btn-matrix-sim {
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+}
+
+.dish-card-actions .btn-matrix-sim:hover {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: var(--emerald);
+  color: var(--emerald);
+}
+
 .strategy-icon {
   flex-shrink: 0;
   font-size: 0.9rem;

@@ -139,7 +139,9 @@ export const matrix = {
     // 2. Render Each Quadrant
     this.renderQuadrant("stars", quadrants.stars || []);
     this.renderQuadrant("plowhorses", quadrants.plowhorses || []);
-    this.renderQuadrant("puzzles", quadrants.puzzles || []);
+    if (document.getElementById("quadrant-puzzles-list")) {
+      this.renderQuadrant("puzzles", quadrants.puzzles || []);
+    }
     this.renderQuadrant("dogs", quadrants.dogs || []);
 
     // 3. Apply active quadrant visibility filter
@@ -220,12 +222,46 @@ export const matrix = {
           <span class="strategy-icon">💡</span>
           <span class="strategy-text">${escapeHtml(item.action_recommendation || "Maintain quality and monitor")}</span>
         </div>
+
+        <div class="dish-card-actions">
+          <button type="button" class="btn btn-matrix-edit" title="Edit Selling Price, Plate Cost, or Details">
+            ✏️ Edit Price &amp; Cost
+          </button>
+          <button type="button" class="btn btn-matrix-sim" title="Simulate price &amp; margin optimizations">
+            📈 Simulator
+          </button>
+        </div>
       `;
+
+      card.querySelector(".btn-matrix-edit")?.addEventListener("click", () => {
+        openEditDishModal(item);
+      });
+
+      card.querySelector(".btn-matrix-sim")?.addEventListener("click", () => {
+        const simTab = document.querySelector('[data-tab="tab-simulation"]');
+        if (simTab) simTab.click();
+      });
 
       listEl.appendChild(card);
     });
   }
 };
+
+function openEditDishModal(item) {
+  const modal = document.getElementById("edit-menu-modal");
+  if (!modal) return;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  };
+  setVal("edit-item-id", item.id || "");
+  setVal("edit-item-name", item.name || "");
+  setVal("edit-item-category", item.category || "General");
+  setVal("edit-item-price", parseFloat(item.selling_price ?? item.price ?? 0));
+  setVal("edit-item-cost", parseFloat(item.cost_price ?? item.cost ?? 0));
+  setVal("edit-item-description", item.description || "");
+  modal.showModal();
+}
 
 function escapeHtml(str) {
   return String(str || "").replace(/[&<>'"]/g,
