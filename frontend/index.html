@@ -778,6 +778,60 @@
     </form>
   </dialog>
 
+  <!-- MODAL: Privacy Policy -->
+  <dialog id="modal-privacy-policy" class="app-modal legal-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">🔒 Privacy Policy</h3>
+      <button type="button" class="btn btn-secondary btn-xs" id="btn-close-privacy">✕</button>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Last updated: November 2026 · Pizza Club Sargodha &amp; Restaurant Money Engine</p>
+    
+    <div class="legal-content">
+      <h4>1. Overview</h4>
+      <p>Restaurant Money Engine values the privacy and proprietary financial data of Pizza Club Sargodha and all affiliated restaurant operators. This policy details how data is managed across our Financial SaaS, QR Ordering, and Kitchen Display systems.</p>
+      
+      <h4>2. Data Collection &amp; Confidentiality</h4>
+      <p>We process only operational data essential to restaurant financial engineering, including daily sales reconciliations, menu item recipe costs, sales volumes, and customer dine-in table orders.</p>
+      
+      <h4>3. Financial &amp; Multi-Tenant Security</h4>
+      <p>All financial records, recipes, and gross sales figures are isolated using Row Level Security (RLS) policies within our dedicated PostgreSQL database. Data is encrypted in transit using industry-standard TLS/SSL.</p>
+      
+      <h4>4. QR Menu &amp; Customer Orders</h4>
+      <p>Customer order details (table number, items, payment method) placed through QR codes are retained strictly for kitchen fulfillment and financial ledger recording. We do not sell or share customer data with third parties.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary btn-sm" id="btn-ack-privacy">Understood</button>
+    </div>
+  </dialog>
+
+  <!-- MODAL: Terms of Service -->
+  <dialog id="modal-terms-of-service" class="app-modal legal-modal">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">📜 Terms of Service</h3>
+      <button type="button" class="btn btn-secondary btn-xs" id="btn-close-terms">✕</button>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Effective Date: 2026 · Restaurant Money Engine Financial Platform</p>
+    
+    <div class="legal-content">
+      <h4>1. Acceptance of Terms</h4>
+      <p>By accessing or utilizing the Restaurant Money Engine financial dashboard, Menu Engineering Matrix, Recipe Costing, and Live Kitchen Display, you agree to these operational terms.</p>
+      
+      <h4>2. Platform License &amp; Usage</h4>
+      <p>Pizza Club Sargodha is granted a production multi-device license for restaurant financial management, kitchen KDS operations, and guest tabletop QR ordering.</p>
+      
+      <h4>3. Financial Accuracy &amp; Reconciliation</h4>
+      <p>The platform provides calculations including Prime Cost %, Contribution Margins, and Profit What-If simulations based on data input by the restaurant. The restaurant is responsible for maintaining verified ingredient invoices and daily ledger entries.</p>
+      
+      <h4>4. Service Availability &amp; Support</h4>
+      <p>The application operates on high-availability cloud infrastructure with continuous health monitoring. Updates to kitchen display and real-time orders are delivered via automated background sync.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary btn-sm" id="btn-ack-terms">I Agree</button>
+    </div>
+  </dialog>
+
   <!-- Global Application Footer -->
   <footer class="app-footer">
     <div class="container footer-inner">
@@ -827,7 +881,12 @@
 
     <div class="footer-bottom-bar">
       <div class="container footer-bottom-inner">
-        <p>&copy; 2026 Pizza Club Sargodha · All rights reserved · Restaurant Money Engine v2.4</p>
+        <p class="footer-copyright-line">
+          &copy; 2026 Pizza Club Sargodha · All rights reserved · 
+          <a href="#" id="link-privacy-policy" class="footer-legal-link">Privacy Policy</a>
+          <span class="footer-legal-sep">|</span>
+          <a href="#" id="link-terms-of-service" class="footer-legal-link">Terms of Service</a>
+        </p>
         <p class="footer-heart">Built for High-Profit Restaurant Operations 🍕</p>
       </div>
     </div>

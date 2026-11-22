@@ -161,6 +161,24 @@ function setupTabs() {
       }
     });
   });
+
+  // Legal Modals (Privacy Policy & Terms of Service)
+  const privacyModal = document.getElementById("modal-privacy-policy");
+  const termsModal = document.getElementById("modal-terms-of-service");
+
+  document.getElementById("link-privacy-policy")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    privacyModal?.showModal();
+  });
+  document.getElementById("btn-close-privacy")?.addEventListener("click", () => privacyModal?.close());
+  document.getElementById("btn-ack-privacy")?.addEventListener("click", () => privacyModal?.close());
+
+  document.getElementById("link-terms-of-service")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    termsModal?.showModal();
+  });
+  document.getElementById("btn-close-terms")?.addEventListener("click", () => termsModal?.close());
+  document.getElementById("btn-ack-terms")?.addEventListener("click", () => termsModal?.close());
 }
 
 // Background health check polling

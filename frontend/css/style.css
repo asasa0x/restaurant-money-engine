@@ -1544,6 +1544,61 @@ dialog.app-modal::backdrop {
   text-align: center;
 }
 
+.footer-copyright-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.footer-legal-link {
+  color: var(--brand-gold);
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.footer-legal-link:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.footer-legal-sep {
+  color: rgba(232, 223, 209, 0.4);
+  font-weight: 400;
+}
+
+.legal-modal {
+  max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-top: 4px solid var(--brand-red);
+}
+
+.legal-content {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.6;
+  margin: 1rem 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: left;
+}
+
+.legal-content h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 0.5rem;
+}
+
+.legal-content p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
 .footer-heart {
   margin: 0;
   font-size: 0.82rem;
